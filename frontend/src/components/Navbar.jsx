@@ -15,6 +15,38 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [companies, setCompanies] = useState([]);
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [keyword, setKeyword] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  useEffect(() => {
+    if (keyword.trim().length < 2) {
+      setSuggestions([]);
+      return;
+    }
+    
+    const fetchSuggestions = async () => {
+      try {
+        const { data } = await api.get(`/products?keyword=${encodeURIComponent(keyword)}`);
+        setSuggestions(data.slice(0, 5));
+      } catch (error) {
+        console.error('Failed to fetch suggestions', error);
+      }
+    };
+
+    const debounceTimer = setTimeout(fetchSuggestions, 300);
+    return () => clearTimeout(debounceTimer);
+  }, [keyword]);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    setShowSuggestions(false);
+    if (keyword.trim()) {
+      navigate(`/products?keyword=${encodeURIComponent(keyword)}`);
+    } else {
+      navigate(`/products`);
+    }
+  };
 
   const toggleDropdown = (name) => {
     setActiveDropdown(activeDropdown === name ? null : name);
@@ -38,10 +70,10 @@ const Navbar = () => {
   };
 
   const { t, i18n } = useTranslation();
-  
+
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
-    
+
     // Trigger Google Translate dropdown
     const selectElement = document.querySelector('.goog-te-combo');
     if (selectElement) {
@@ -57,7 +89,7 @@ const Navbar = () => {
         <div className="container mx-auto flex flex-col sm:flex-row justify-between items-center text-center sm:text-left">
           <span className="font-medium tracking-wide">Natural Healing. Trusted Solutions.</span>
           <div className="flex gap-4 mt-1 sm:mt-0 opacity-90 items-center">
-            <span className="hidden md:inline">Call: +91 98765 43210</span>
+            <span className="hidden md:inline">Call: +91 9638930188</span>
             <span className="hidden md:inline">|</span>
             <Link to="/orders" className="hover:text-emerald-200 transition">{t('Track Order')}</Link>
             <span className="hidden sm:inline">|</span>
@@ -77,25 +109,55 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center group">
             <img src="/logo%202.png" alt="Logo" className="h-20 md:h-24 w-20 md:w-24 object-contain translate-y-1.5" />
-            <img 
-              src="/logo%20font.png" 
-              alt="HOMEOVIA" 
-              className="h-7 md:h-9 w-auto object-contain -ml-3 md:-ml-4" 
-              style={{ filter: 'brightness(0) saturate(100%) invert(32%) sepia(87%) saturate(543%) hue-rotate(113deg) brightness(95%) contrast(92%)' }} 
+            <img
+              src="/logo%20font.png"
+              alt="HOMEOVIA"
+              className="h-7 md:h-9 w-auto object-contain -ml-3 md:-ml-4"
+              style={{ filter: 'brightness(0) saturate(100%) invert(32%) sepia(87%) saturate(543%) hue-rotate(113deg) brightness(95%) contrast(92%)' }}
             />
           </Link>
 
           {/* Centered Search */}
-          <div className="hidden lg:flex flex-grow max-w-xl mx-8 relative">
+          <form onSubmit={handleSearch} className="hidden lg:flex flex-grow max-w-xl mx-8 relative">
             <input
               type="text"
+              value={keyword}
+              onChange={(e) => {
+                 setKeyword(e.target.value);
+                 setShowSuggestions(true);
+              }}
+              onFocus={() => setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
               placeholder="Search for remedies, brands..."
               className="w-full bg-emerald-50 border border-emerald-100 text-gray-800 px-5 py-2.5 rounded-full outline-none focus:border-emerald-400 focus:bg-white transition shadow-inner"
             />
-            <button className="absolute right-2 top-1/2 -translate-y-1/2 bg-emerald-600 text-white p-1.5 rounded-full hover:bg-emerald-700 transition">
+            <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-emerald-600 text-white p-1.5 rounded-full hover:bg-emerald-700 transition">
               <Search size={18} />
             </button>
-          </div>
+            
+            {/* Suggestions Dropdown */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute top-full mt-2 w-full bg-white border border-emerald-100 rounded-xl shadow-xl overflow-hidden z-50">
+                {suggestions.map(product => (
+                  <div 
+                    key={product._id} 
+                    onClick={() => {
+                       navigate(`/product/${product._id}`);
+                       setShowSuggestions(false);
+                       setKeyword('');
+                    }}
+                    className="flex items-center gap-3 p-3 hover:bg-emerald-50 cursor-pointer border-b border-gray-50 last:border-0 transition"
+                  >
+                    <img src={product.image || 'https://via.placeholder.com/40'} alt={product.name} className="w-10 h-10 object-contain rounded bg-white" />
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-gray-800 line-clamp-1">{product.name}</span>
+                      <span className="text-[10px] font-semibold text-emerald-600">{product.potency} {product.dilution}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </form>
 
           {/* Icons / Actions */}
           <div className="flex items-center gap-5">
@@ -157,7 +219,7 @@ const Navbar = () => {
             <Link to="/" className="hover:text-emerald-600 transition px-1 py-1">{t('Home')}</Link>
             <Link to="/products" className="hover:text-emerald-600 transition px-1 py-1">{t('Shop')}</Link>
             <div className="static md:relative group flex items-center h-full">
-              <button 
+              <button
                 onClick={() => toggleDropdown('categories')}
                 className="flex items-center gap-0.5 hover:text-emerald-600 transition outline-none focus:outline-none px-1 py-1"
               >
@@ -175,9 +237,9 @@ const Navbar = () => {
                   'bio chemics & bio combinations tablets',
                   'liquid dilution'
                 ].map(cat => (
-                  <Link 
-                    key={cat} 
-                    to={`/products?category=${encodeURIComponent(cat)}`} 
+                  <Link
+                    key={cat}
+                    to={`/products?category=${encodeURIComponent(cat)}`}
                     onClick={() => setActiveDropdown(null)}
                     className="px-3 py-2 md:px-4 md:py-2.5 text-[11px] md:text-sm font-medium text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 capitalize transition border-b border-gray-50 last:border-0 leading-tight"
                   >
@@ -187,7 +249,7 @@ const Navbar = () => {
               </div>
             </div>
             <div className="static md:relative group flex items-center h-full">
-              <button 
+              <button
                 onClick={() => toggleDropdown('companies')}
                 className="flex items-center gap-0.5 hover:text-emerald-600 transition outline-none focus:outline-none px-1 py-1"
               >
@@ -195,9 +257,9 @@ const Navbar = () => {
               </button>
               <div className={`absolute top-full left-0 right-0 mx-auto md:mx-0 md:left-0 md:right-auto mt-2 w-[90vw] md:w-48 bg-white shadow-2xl md:shadow-xl rounded-xl border border-emerald-50 transition-all duration-200 z-[9999] flex flex-col py-1.5 ${activeDropdown === 'companies' ? 'opacity-100 visible' : 'opacity-0 invisible md:group-hover:opacity-100 md:group-hover:visible'}`}>
                 {companies.map(comp => (
-                  <Link 
-                    key={comp._id} 
-                    to={`/products?company=${encodeURIComponent(comp.name)}`} 
+                  <Link
+                    key={comp._id}
+                    to={`/products?company=${encodeURIComponent(comp.name)}`}
                     onClick={() => setActiveDropdown(null)}
                     className="px-3 py-2 md:px-4 md:py-2.5 text-[11px] md:text-sm font-medium text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 transition border-b border-gray-50 last:border-0 leading-tight"
                   >

@@ -4,6 +4,7 @@ import api from '../services/api';
 import ProductCard from '../components/ProductCard';
 import FAQs from './FAQs';
 import { ShieldCheck, Truck, Users, CreditCard, Leaf, ArrowRight, HeartPulse, Sparkles, Smile, Star, Phone } from 'lucide-react';
+import SEO from '../components/SEO';
 
 const Home = () => {
   const [bestsellers, setBestsellers] = useState([]);
@@ -36,6 +37,10 @@ const Home = () => {
 
   return (
     <div className="w-full bg-slate-50 text-slate-800">
+      <SEO 
+        title="Buy Homeopathic Medicines Online" 
+        description="Aura Homeopathy is your trusted destination to buy top quality homeopathic medicines online. Discover treatments for various diseases and consult with expert doctors." 
+      />
       
       {/* 3. Hero Section (Video Background) */}
       <section className="relative min-h-[90vh] flex items-center overflow-hidden">

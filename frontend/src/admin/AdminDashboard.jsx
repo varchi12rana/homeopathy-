@@ -68,9 +68,15 @@ const AdminDashboard = () => {
           </div>
           <Link 
             to="/admin/add-product" 
-            className="w-full flex items-center justify-center gap-2 bg-teal-50 text-teal-700 font-medium py-3 px-4 rounded-md hover:bg-teal-100 transition"
+            className="w-full flex items-center justify-center gap-2 bg-teal-50 text-teal-700 font-medium py-3 px-4 rounded-md hover:bg-teal-100 transition mb-3"
           >
             <PlusCircle size={20} /> Add New Product
+          </Link>
+          <Link 
+            to="/admin/bulk-upload" 
+            className="w-full flex items-center justify-center gap-2 bg-blue-50 text-blue-700 font-medium py-3 px-4 rounded-md hover:bg-blue-100 transition"
+          >
+            <PlusCircle size={20} /> Bulk Upload Products
           </Link>
         </div>
 

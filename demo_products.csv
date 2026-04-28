@@ -1,0 +1,6 @@
+name,description,price,company,stock,image,potency,dilution,motherTincture,category,isBestSeller
+Nux Vomica 30 CH,A very effective remedy for digestive issues and stress.,150,Dr. Reckeweg,50,https://example.com/nux.jpg,30 CH,,false,liquid dilution,true
+Arnica Montana 200 CH,Excellent for muscle pain and trauma.,180,SBL,100,https://example.com/arnica.jpg,200 CH,,false,ointments & gels,true
+Calendula Mother Tincture,Great antiseptic for wounds.,250,Willmar Schwabe,20,,Q,true,mother tincture,false
+Ignatia Amara 30 CH,Used for grief and emotional distress.,120,Dr. Reckeweg,15,https://example.com/ignatia.jpg,30 CH,,false,liquid dilution,false
+Missing Title Test,,100,SBL,5,https://example.com/test.jpg,,,,,

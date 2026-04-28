@@ -1,0 +1,5 @@
+Company,Category,Name,Potency,Dilution (ML),Price,Stock,Image URL,Description,Is Best Seller,Mother Tincture
+SBL,Liquid Dilution,Abies Canadensis,30 CH,30ml,100,50,https://example.com/abies30.jpg,Effective remedy for digestive issues.,true,false
+,,Abies Canadensis,200 CH,100ml,250,20,https://example.com/abies100.jpg,,,
+Dr. Reckeweg,Mother Tincture,Abroma Augusta,Q,30ml,150,10,https://example.com/abroma.jpg,Helps with weakness and exhaustion.,false,true
+,,Abroma Augusta,Q,100ml,400,5,https://example.com/abroma100.jpg,,,

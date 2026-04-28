@@ -9,6 +9,7 @@ const CompanyProducts = () => {
   const { companyName } = useParams();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedIds, setSelectedIds] = useState([]);
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -45,6 +46,36 @@ const CompanyProducts = () => {
     }
   };
 
+  const handleBulkDelete = async () => {
+    if (window.confirm(`Are you sure you want to delete ${selectedIds.length} products?`)) {
+      try {
+        await api.post('/products/bulk-delete', { ids: selectedIds });
+        toast.success(`${selectedIds.length} products deleted`);
+        setSelectedIds([]);
+        fetchProducts();
+      } catch (error) {
+        console.error('Bulk delete error:', error.response?.data || error);
+        toast.error('Failed to delete products: ' + (error.response?.data?.message || error.message));
+      }
+    }
+  };
+
+  const toggleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedIds(products.map(p => p._id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const toggleSelect = (id) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter(itemId => itemId !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
+    }
+  };
+
   if (loading) {
     return <div className="flex justify-center mt-20"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div></div>;
   }
@@ -58,12 +89,22 @@ const CompanyProducts = () => {
           </Link>
           <h1 className="text-2xl font-bold text-gray-800">{companyName} Products</h1>
         </div>
-        <Link 
-          to="/admin/add-product" 
-          className="bg-teal-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-teal-700 transition"
-        >
-          <Plus size={18} /> Add Product
-        </Link>
+        <div className="flex gap-3">
+          {selectedIds.length > 0 && (
+            <button 
+              onClick={handleBulkDelete}
+              className="bg-red-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-red-700 transition"
+            >
+              <Trash2 size={18} /> Delete Selected ({selectedIds.length})
+            </button>
+          )}
+          <Link 
+            to="/admin/add-product" 
+            className="bg-teal-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-teal-700 transition"
+          >
+            <Plus size={18} /> Add Product
+          </Link>
+        </div>
       </div>
 
       {products.length === 0 ? (
@@ -76,6 +117,14 @@ const CompanyProducts = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50 text-gray-700 uppercase text-sm border-b">
+                  <th className="px-6 py-4">
+                    <input 
+                      type="checkbox" 
+                      onChange={toggleSelectAll} 
+                      checked={products.length > 0 && selectedIds.length === products.length}
+                      className="w-4 h-4 text-teal-600 rounded border-gray-300"
+                    />
+                  </th>
                   <th className="px-6 py-4">Image</th>
                   <th className="px-6 py-4">Name</th>
                   <th className="px-6 py-4">Potency/Dilution</th>
@@ -86,7 +135,15 @@ const CompanyProducts = () => {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {products.map((product) => (
-                  <tr key={product._id} className="hover:bg-gray-50 transition">
+                  <tr key={product._id} className={`transition ${selectedIds.includes(product._id) ? 'bg-teal-50' : 'hover:bg-gray-50'}`}>
+                    <td className="px-6 py-4">
+                      <input 
+                        type="checkbox" 
+                        checked={selectedIds.includes(product._id)} 
+                        onChange={() => toggleSelect(product._id)}
+                        className="w-4 h-4 text-teal-600 rounded border-gray-300"
+                      />
+                    </td>
                     <td className="px-6 py-4">
                       <img src={product.image} alt={product.name} className="h-10 w-10 object-contain bg-white" />
                     </td>

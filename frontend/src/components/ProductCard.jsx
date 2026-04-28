@@ -71,10 +71,11 @@ const ProductCard = ({ product }) => {
       <div className="p-3 sm:p-5 flex flex-col flex-grow">
         <div className="flex justify-between items-start mb-1 sm:mb-2 flex-wrap gap-1">
           <span className="text-[9px] sm:text-xs font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md">{product.company}</span>
-          <span className="text-[9px] sm:text-xs font-medium text-slate-500">{product.potency} {product.dilution}</span>
         </div>
         
-        <h3 className="text-xs sm:text-lg font-bold text-emerald-950 mb-1 leading-tight group-hover:text-emerald-700 transition line-clamp-2" title={product.name}>{product.name}</h3>
+        <h3 className="text-xs sm:text-lg font-bold text-emerald-950 mb-1 leading-tight group-hover:text-emerald-700 transition line-clamp-2" title={`${product.name} ${product.potency || ''} ${product.dilution || ''}`}>
+          {product.name} {product.potency && <span className="font-medium text-emerald-700 ml-1">{product.potency}</span>} {product.dilution && <span className="font-medium text-emerald-700">{product.dilution}</span>}
+        </h3>
         
         <div className="mt-auto pt-2 sm:pt-4 flex flex-col gap-1.5 sm:gap-2 border-t border-slate-100">
           <span className="text-sm sm:text-xl font-black text-emerald-800">₹{product.price}</span>

@@ -30,6 +30,7 @@ import ContactUs from './pages/ContactUs';
 import AdminDashboard from './admin/AdminDashboard';
 import CompanyProducts from './admin/CompanyProducts';
 import AddProduct from './admin/AddProduct';
+import BulkUpload from './admin/BulkUpload';
 import EditProduct from './admin/EditProduct';
 import Orders from './admin/Orders';
 import AdminMessages from './admin/AdminMessages';
@@ -75,6 +76,7 @@ function App() {
             <Route path="/admin" element={<div className="container mx-auto px-4 py-8"><AdminDashboard /></div>} />
             <Route path="/admin/company/:companyName" element={<div className="container mx-auto px-4 py-8"><CompanyProducts /></div>} />
             <Route path="/admin/add-product" element={<div className="container mx-auto px-4 py-8"><AddProduct /></div>} />
+            <Route path="/admin/bulk-upload" element={<div className="container mx-auto px-4 py-8"><BulkUpload /></div>} />
             <Route path="/admin/edit-product/:id" element={<div className="container mx-auto px-4 py-8"><EditProduct /></div>} />
             <Route path="/admin/orders" element={<div className="container mx-auto px-4 py-8"><Orders /></div>} />
             <Route path="/admin/messages" element={<div className="container mx-auto px-4 py-8"><AdminMessages /></div>} />

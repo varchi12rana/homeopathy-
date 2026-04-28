@@ -18,8 +18,8 @@ const Footer = () => {
             </p>
             <div className="space-y-3 text-emerald-200 text-sm">
               <p className="flex items-start gap-3"><Phone size={16} className="text-emerald-400 shrink-0 mt-0.5" /> <a href="tel:+919638930188" className="hover:text-white transition">+91 9638930188</a></p>
-              <p className="flex items-start gap-3"><Mail size={16} className="text-emerald-400 shrink-0 mt-0.5" /> <a href="mailto:dr.ranascare@gmail.com" className="hover:text-white transition">dr.ranascare@gmail.com</a></p>
-              <p className="flex items-start gap-3"><MapPin size={16} className="text-emerald-400 shrink-0 mt-0.5" /> <span>102,Sahyog shopping centre,<br/>udhna main road, udhana,<br/>surat, gujarat-394210</span></p>
+              <p className="flex items-start gap-3"><Mail size={16} className="text-emerald-400 shrink-0 mt-0.5" /> <a href="mailto:homeovia.care@gmail.com" className="hover:text-white transition">homeovia.care@gmail.com</a></p>
+              <p className="flex items-start gap-3"><MapPin size={16} className="text-emerald-400 shrink-0 mt-0.5" /> <span>102,Sahyog shopping centre,<br />udhna main road, udhana,<br />surat, gujarat-394210</span></p>
             </div>
           </div>
 

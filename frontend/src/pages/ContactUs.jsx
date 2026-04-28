@@ -29,14 +29,14 @@ const ContactUs = () => {
   return (
     <div className="container mx-auto px-4 py-12 max-w-5xl">
       <h1 className="text-3xl font-bold text-emerald-900 mb-8 text-center">Contact Us</h1>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="bg-emerald-900 text-emerald-50 p-8 rounded-lg shadow-sm">
           <h2 className="text-2xl font-semibold mb-6">Get In Touch</h2>
           <p className="mb-8 text-emerald-200">
             Have questions about our products, orders, or need general assistance? We're here to help!
           </p>
-          
+
           <div className="space-y-6">
             <div className="flex items-start gap-4">
               <MapPin className="text-emerald-400 mt-1 shrink-0" size={24} />
@@ -45,7 +45,7 @@ const ContactUs = () => {
                 <p className="text-emerald-200">102,Sahyog shopping centre,<br />udhna main road, udhana,<br />surat, gujarat-394210</p>
               </div>
             </div>
-            
+
             <div className="flex items-start gap-4">
               <Phone className="text-emerald-400 mt-1 shrink-0" size={24} />
               <div>
@@ -53,12 +53,12 @@ const ContactUs = () => {
                 <p className="text-emerald-200"><a href="tel:+919638930188" className="hover:text-white transition">+91 9638930188</a><br />Mon-Fri: 9am - 6pm</p>
               </div>
             </div>
-            
+
             <div className="flex items-start gap-4">
               <Mail className="text-emerald-400 mt-1 shrink-0" size={24} />
               <div>
                 <h3 className="font-medium text-lg">Email Address</h3>
-                <p className="text-emerald-200"><a href="mailto:dr.ranascare@gmail.com" className="hover:text-white transition">dr.ranascare@gmail.com</a></p>
+                <p className="text-emerald-200"><a href="mailto:homeovia.care@gmail.com" className="hover:text-white transition">homeovia.care@gmail.com</a></p>
               </div>
             </div>
           </div>

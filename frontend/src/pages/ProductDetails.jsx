@@ -5,6 +5,7 @@ import { CartContext } from '../context/CartContext';
 import { AuthContext } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import { ArrowLeft } from 'lucide-react';
+import SEO from '../components/SEO';
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -43,8 +44,35 @@ const ProductDetails = () => {
     return <div className="text-center py-12">Product not found</div>;
   }
 
+  const structuredData = {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": product.name,
+    "image": product.image || `${window.location.origin}/logo.png`,
+    "description": product.description,
+    "brand": {
+      "@type": "Brand",
+      "name": product.company
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": window.location.href,
+      "priceCurrency": "INR",
+      "price": product.price,
+      "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      "itemCondition": "https://schema.org/NewCondition"
+    }
+  };
+
   return (
     <div className="container mx-auto max-w-5xl">
+      <SEO 
+        title={`${product.name} | Homeopathic Medicine`} 
+        description={product.description?.substring(0, 160) || `Buy ${product.name} online from Aura Homeopathy. High-quality homeopathic remedies for effective healing.`}
+        image={product.image}
+        type="product"
+        structuredData={structuredData}
+      />
       <Link to="/" className="inline-flex items-center text-teal-600 hover:text-teal-800 mb-6">
         <ArrowLeft size={16} className="mr-1" /> Back to Products
       </Link>
@@ -66,7 +94,9 @@ const ProductDetails = () => {
             )}
           </div>
           
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">{product.name}</h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            {product.name} {product.potency && <span className="font-semibold text-teal-700 ml-2 text-2xl">{product.potency}</span>} {product.dilution && <span className="font-semibold text-teal-700 text-2xl">{product.dilution}</span>}
+          </h1>
           <p className="text-2xl font-bold text-teal-600 mb-6">₹{product.price}</p>
           
           <div className="mb-6 bg-gray-50 p-4 rounded-lg">
