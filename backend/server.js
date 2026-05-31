@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
@@ -9,7 +10,7 @@ const orderRoutes = require('./routes/orderRoutes');
 const companyRoutes = require('./routes/companyRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 connectDB();
 
