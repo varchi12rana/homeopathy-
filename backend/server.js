@@ -26,7 +26,7 @@ app.use('/api/companies', companyRoutes);
 app.use('/api/messages', messageRoutes);
 
 app.get('/', (req, res) => {
-  res.send('API is running...');
+  res.send('Backend API is running...');
 });
 
 // Error handling middleware
