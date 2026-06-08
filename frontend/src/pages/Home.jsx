@@ -211,7 +211,7 @@ const Home = () => {
               <div className="text-emerald-200 text-lg font-medium">Happy Customers</div>
             </div>
             <div className="py-4">
-              <div className="text-5xl font-extrabold mb-2">200+</div>
+              <div className="text-5xl font-extrabold mb-2">5000+</div>
               <div className="text-emerald-200 text-lg font-medium">Remedies Available</div>
             </div>
           </div>

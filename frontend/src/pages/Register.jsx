@@ -2,12 +2,16 @@ import { useState, useContext, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { toast } from 'react-toastify';
+import { Eye, EyeOff } from 'lucide-react';
 
 const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [mobileNumber, setMobileNumber] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { register, user } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -23,7 +27,7 @@ const Register = () => {
       toast.error('Passwords do not match');
       return;
     }
-    const success = await register(name, email, password);
+    const success = await register(name, email, mobileNumber, password);
     if (success) navigate('/');
   };
 
@@ -53,24 +57,56 @@ const Register = () => {
             />
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">Password</label>
+            <label className="block text-gray-700 text-sm font-bold mb-2">Mobile Number</label>
             <input 
-              type="password" 
+              type="tel" 
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={mobileNumber}
+              onChange={(e) => setMobileNumber(e.target.value)}
               required
+              pattern="[0-9]{10}"
+              title="Please enter a valid 10-digit mobile number"
             />
           </div>
-          <div className="mb-6">
+          <div className="mb-4 relative">
+            <label className="block text-gray-700 text-sm font-bold mb-2">Password</label>
+            <div className="relative">
+              <input 
+                type={showPassword ? "text" : "password"} 
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 pr-10"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button 
+                type="button" 
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-teal-600 focus:outline-none"
+                onClick={() => setShowPassword(!showPassword)}
+                tabIndex="-1"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          </div>
+          <div className="mb-6 relative">
             <label className="block text-gray-700 text-sm font-bold mb-2">Confirm Password</label>
-            <input 
-              type="password" 
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-            />
+            <div className="relative">
+              <input 
+                type={showConfirmPassword ? "text" : "password"}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 pr-10"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
+              <button 
+                type="button" 
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-teal-600 focus:outline-none"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                tabIndex="-1"
+              >
+                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
           <button 
             type="submit" 

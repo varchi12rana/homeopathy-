@@ -22,8 +22,27 @@ const getProducts = async (req, res) => {
       
     const isBestSeller = req.query.isBestSeller === 'true' ? { isBestSeller: true } : {};
 
-    const products = await Product.find({ ...keyword, ...category, ...company, ...isBestSeller });
-    res.json(products);
+    const pageSize = req.query.limit ? Number(req.query.limit) : 24;
+    const page = Number(req.query.page) || 1;
+
+    const query = { ...keyword, ...category, ...company, ...isBestSeller };
+
+    // Handle Sorting
+    const sortOption = req.query.sortOption || 'default';
+    let sortQuery = { name: 1 }; // Default sort by name ascending
+    if (sortOption === 'name_asc') sortQuery = { name: 1 };
+    if (sortOption === 'name_desc') sortQuery = { name: -1 };
+    if (sortOption === 'price_asc') sortQuery = { price: 1 };
+    if (sortOption === 'price_desc') sortQuery = { price: -1 };
+
+    const count = await Product.countDocuments(query);
+    const products = await Product.find(query)
+      .collation({ locale: 'en', strength: 2 })
+      .sort(sortQuery)
+      .limit(pageSize)
+      .skip(pageSize * (page - 1));
+
+    res.json({ products, page, pages: Math.ceil(count / pageSize), total: count });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -38,6 +57,58 @@ const getProductById = async (req, res) => {
     } else {
       res.status(404).json({ message: 'Product not found' });
     }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getAlphabetPage = async (req, res) => {
+  try {
+    const letter = req.query.letter;
+    if (!letter || letter.length !== 1) {
+      return res.status(400).json({ message: 'Valid letter is required' });
+    }
+
+    const keyword = req.query.keyword ? { name: { $regex: req.query.keyword, $options: 'i' } } : {};
+    const category = req.query.category ? { category: { $regex: new RegExp('^' + req.query.category + '$', 'i') } } : {};
+    const company = req.query.company ? { company: { $regex: new RegExp('^' + req.query.company + '$', 'i') } } : {};
+    const isBestSeller = req.query.isBestSeller === 'true' ? { isBestSeller: true } : {};
+
+    const query = { ...keyword, ...category, ...company, ...isBestSeller };
+
+    // Find the first product that starts with this letter
+    const firstProduct = await Product.findOne({ 
+      ...query, 
+      name: new RegExp('^' + letter, 'i') 
+    })
+    .collation({ locale: 'en', strength: 2 })
+    .sort({ name: 1 });
+
+    if (!firstProduct) {
+      return res.status(404).json({ message: 'No products start with this letter' });
+    }
+
+    // Count how many products come strictly before it alphabetically
+    const countBefore = await Product.countDocuments({ 
+      ...query, 
+      name: { $lt: firstProduct.name } 
+    }).collation({ locale: 'en', strength: 2 });
+
+    const pageSize = 24;
+    const targetPage = Math.floor(countBefore / pageSize) + 1;
+
+    res.json({ page: targetPage });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getUniqueCategories = async (req, res) => {
+  try {
+    const categories = await Product.distinct('category');
+    // Filter out falsy values like null or empty string
+    const validCategories = categories.filter(c => c && c.trim() !== '');
+    res.json(validCategories);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -152,6 +223,7 @@ const createProductsBulk = async (req, res) => {
         }
 
         if (normalizedKey.includes('name') || normalizedKey.includes('title')) p.name = val;
+        else if (normalizedKey.includes('short desc') || normalizedKey.includes('main point') || normalizedKey.includes('uses') || normalizedKey.includes('use for')) p.shortDescription = val;
         else if (normalizedKey.includes('desc') || normalizedKey.includes('detail')) p.description = val;
         else if (normalizedKey.includes('price') || normalizedKey.includes('mrp') || normalizedKey.includes('cost') || normalizedKey.includes('rate') || normalizedKey.includes('amount') || normalizedKey.includes('rs')) p.price = val;
         else if (normalizedKey.includes('potency')) p.potency = val;
@@ -226,10 +298,26 @@ const createProductsBulk = async (req, res) => {
           if (p.potency) filter.potency = p.potency;
           if (p.dilution) filter.dilution = p.dilution;
           
+          const updateFields = { ...p };
+          const setOnInsertFields = {};
+          
+          // Do not overwrite existing descriptions or images with placeholders
+          if (updateFields.description === 'No description available.') {
+            setOnInsertFields.description = updateFields.description;
+            delete updateFields.description;
+          }
+          if (updateFields.image === 'https://via.placeholder.com/300?text=No+Image') {
+            setOnInsertFields.image = updateFields.image;
+            delete updateFields.image;
+          }
+          
           return {
             updateOne: {
               filter,
-              update: { $set: p },
+              update: { 
+                $set: updateFields,
+                ...(Object.keys(setOnInsertFields).length > 0 && { $setOnInsert: setOnInsertFields })
+              },
               upsert: true
             }
           };
@@ -314,13 +402,33 @@ const deleteProductsBulk = async (req, res) => {
   }
 };
 
+const deleteCategory = async (req, res) => {
+  try {
+    const categoryName = req.params.categoryName;
+    if (!categoryName) {
+      return res.status(400).json({ message: 'Category name is required' });
+    }
+
+    const result = await Product.updateMany(
+      { category: { $regex: new RegExp(`^${categoryName}$`, 'i') } },
+      { $set: { category: '' } }
+    );
+    res.json({ message: `Category removed from ${result.modifiedCount} products` });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getProducts,
   getProductById,
+  getAlphabetPage,
   getProductsByCompany,
+  getUniqueCategories,
   createProduct,
   createProductsBulk,
   updateProduct,
   deleteProduct,
   deleteProductsBulk,
+  deleteCategory,
 };

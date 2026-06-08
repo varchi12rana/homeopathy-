@@ -5,6 +5,7 @@ import { AuthContext } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import { ArrowLeft } from 'lucide-react';
 import CompanySelect from './CompanySelect';
+import CategorySelect from './CategorySelect';
 
 const EditProduct = () => {
   const { id } = useParams();
@@ -86,18 +87,7 @@ const EditProduct = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-            <select className="w-full border rounded px-3 py-2 outline-none focus:border-teal-500" value={category} onChange={e => setCategory(e.target.value)}>
-              <option value="">Select Category...</option>
-              <option value="mother tincture">Mother Tincture</option>
-              <option value="liquid specialist & tablets">Liquid Specialist & Tablets</option>
-              <option value="personal care">Personal Care</option>
-              <option value="ointments & gels">Ointments & Gels</option>
-              <option value="herbal range">Herbal Range</option>
-              <option value="baby care">Baby Care</option>
-              <option value="ear /eye drops">Ear / Eye Drops</option>
-              <option value="bio chemics & bio combinations tablets">Bio Chemics & Bio Combinations Tablets</option>
-              <option value="liquid dilution">Liquid Dilution</option>
-            </select>
+            <CategorySelect selectedCategory={category} onSelectCategory={setCategory} />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>

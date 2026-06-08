@@ -1,7 +1,24 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, Leaf } from 'lucide-react';
+import api from '../services/api';
 
 const Footer = () => {
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const { data } = await api.get('/products/categories/unique');
+        // Show up to 6 categories in the footer to keep it tidy
+        setCategories(data.slice(0, 6));
+      } catch (error) {
+        console.error('Error fetching categories for footer', error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
   return (
     <footer className="bg-emerald-900 text-emerald-50 pt-16 pb-8 mt-auto border-t border-emerald-800">
       <div className="container mx-auto px-4">
@@ -40,12 +57,13 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold text-white mb-4 relative inline-block after:content-[''] after:absolute after:w-1/2 after:h-0.5 after:bg-emerald-500 after:-bottom-1 after:left-0">Categories</h3>
             <ul className="space-y-2 text-emerald-200 text-sm">
-              <li><Link to="#" className="hover:text-white transition">Mind & Stress</Link></li>
-              <li><Link to="#" className="hover:text-white transition">Women's Health</Link></li>
-              <li><Link to="#" className="hover:text-white transition">Child Care</Link></li>
-              <li><Link to="#" className="hover:text-white transition">Skin Care</Link></li>
-              <li><Link to="#" className="hover:text-white transition">Hair Care</Link></li>
-              <li><Link to="#" className="hover:text-white transition">Immunity Boosters</Link></li>
+              {categories.map(cat => (
+                <li key={cat}>
+                  <Link to={`/products?category=${encodeURIComponent(cat)}`} className="hover:text-white transition capitalize">
+                    {cat}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 

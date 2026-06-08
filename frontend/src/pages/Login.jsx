@@ -1,10 +1,12 @@
 import { useState, useContext, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { Eye, EyeOff } from 'lucide-react';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const { login, user } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
@@ -38,15 +40,25 @@ const Login = () => {
               required
             />
           </div>
-          <div className="mb-6">
+          <div className="mb-6 relative">
             <label className="block text-gray-700 text-sm font-bold mb-2">Password</label>
-            <input 
-              type="password" 
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div className="relative">
+              <input 
+                type={showPassword ? "text" : "password"}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 pr-10"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button 
+                type="button" 
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-teal-600 focus:outline-none"
+                onClick={() => setShowPassword(!showPassword)}
+                tabIndex="-1"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
           <button 
             type="submit" 

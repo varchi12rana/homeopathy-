@@ -10,6 +10,9 @@ const CompanyProducts = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedPotency, setSelectedPotency] = useState('All');
+  const [selectedDilution, setSelectedDilution] = useState('All');
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -24,9 +27,9 @@ const CompanyProducts = () => {
 
   const fetchProducts = async () => {
     try {
-      const url = companyName === 'All Products' ? '/products' : `/products/company/${companyName}`;
+      const url = companyName === 'All Products' ? '/products?limit=100000' : `/products/company/${companyName}`;
       const { data } = await api.get(url);
-      setProducts(data);
+      setProducts(data.products || data);
       setLoading(false);
     } catch (error) {
       toast.error('Failed to fetch products');
@@ -76,6 +79,17 @@ const CompanyProducts = () => {
     }
   };
 
+  const uniqueCategories = ['All', ...new Set(products.map(p => p.category).filter(Boolean))].sort();
+  const uniquePotencies = ['All', ...new Set(products.map(p => p.potency).filter(Boolean))].sort();
+  const uniqueDilutions = ['All', ...new Set(products.map(p => p.dilution).filter(Boolean))].sort();
+
+  const filteredProducts = products.filter(p => {
+    const matchCategory = selectedCategory === 'All' || p.category === selectedCategory;
+    const matchPotency = selectedPotency === 'All' || p.potency === selectedPotency;
+    const matchDilution = selectedDilution === 'All' || p.dilution === selectedDilution;
+    return matchCategory && matchPotency && matchDilution;
+  });
+
   if (loading) {
     return <div className="flex justify-center mt-20"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div></div>;
   }
@@ -112,7 +126,51 @@ const CompanyProducts = () => {
           No products found for this company.
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <>
+          <div className="bg-white p-4 rounded-lg shadow mb-6 flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <label className="font-medium text-gray-700">Category:</label>
+              <select 
+                value={selectedCategory} 
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="border border-gray-300 rounded-md px-3 py-1.5 outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 min-w-[140px]"
+              >
+                {uniqueCategories.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <label className="font-medium text-gray-700">Potency:</label>
+              <select 
+                value={selectedPotency} 
+                onChange={(e) => setSelectedPotency(e.target.value)}
+                className="border border-gray-300 rounded-md px-3 py-1.5 outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 min-w-[120px]"
+              >
+                {uniquePotencies.map(pot => (
+                  <option key={pot} value={pot}>{pot}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <label className="font-medium text-gray-700">ML / Size:</label>
+              <select 
+                value={selectedDilution} 
+                onChange={(e) => setSelectedDilution(e.target.value)}
+                className="border border-gray-300 rounded-md px-3 py-1.5 outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 min-w-[120px]"
+              >
+                {uniqueDilutions.map(dil => (
+                  <option key={dil} value={dil}>{dil}</option>
+                ))}
+              </select>
+            </div>
+            
+            <span className="text-sm text-gray-500 ml-auto font-medium">{filteredProducts.length} products showing</span>
+          </div>
+
+          <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
@@ -134,7 +192,7 @@ const CompanyProducts = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {products.map((product) => (
+                {filteredProducts.map((product) => (
                   <tr key={product._id} className={`transition ${selectedIds.includes(product._id) ? 'bg-teal-50' : 'hover:bg-gray-50'}`}>
                     <td className="px-6 py-4">
                       <input 
@@ -169,6 +227,7 @@ const CompanyProducts = () => {
             </table>
           </div>
         </div>
+        </>
       )}
     </div>
   );

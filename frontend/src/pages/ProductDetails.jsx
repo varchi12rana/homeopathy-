@@ -95,20 +95,26 @@ const ProductDetails = () => {
           </div>
           
           <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            {product.name} {product.potency && <span className="font-semibold text-teal-700 ml-2 text-2xl">{product.potency}</span>} {product.dilution && <span className="font-semibold text-teal-700 text-2xl">{product.dilution}</span>}
+            {product.name} 
+            {product.potency && product.potency !== 'false' && product.potency !== 'null' && <span className="font-semibold text-teal-700 ml-2 text-2xl">{product.potency}</span>} 
+            {product.dilution && product.dilution !== 'false' && product.dilution !== 'null' && <span className="font-semibold text-teal-700 text-2xl ml-2">{product.dilution}</span>}
           </h1>
           <p className="text-2xl font-bold text-teal-600 mb-6">₹{product.price}</p>
           
-          <div className="mb-6 bg-gray-50 p-4 rounded-lg">
-            <h3 className="font-semibold text-gray-700 mb-2">Details</h3>
-            <ul className="text-sm text-gray-600 space-y-2">
-              <li><span className="font-medium">Potency:</span> {product.potency}</li>
-              <li><span className="font-medium">Dilution:</span> {product.dilution}</li>
-              {user?.role === 'admin' && (
-                <li><span className="font-medium">Status:</span> {product.stock > 0 ? <span className="text-green-600">In Stock ({product.stock})</span> : <span className="text-red-600">Out of Stock</span>}</li>
-              )}
-            </ul>
-          </div>
+          {((product.potency && product.potency !== 'false' && product.potency !== 'null') || 
+            (product.dilution && product.dilution !== 'false' && product.dilution !== 'null') || 
+            user?.role === 'admin') && (
+            <div className="mb-6 bg-gray-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-gray-700 mb-2">Details</h3>
+              <ul className="text-sm text-gray-600 space-y-2">
+                {product.potency && product.potency !== 'false' && product.potency !== 'null' && <li><span className="font-medium">Potency:</span> {product.potency}</li>}
+                {product.dilution && product.dilution !== 'false' && product.dilution !== 'null' && <li><span className="font-medium">Dilution / Size:</span> {product.dilution}</li>}
+                {user?.role === 'admin' && (
+                  <li><span className="font-medium">Status:</span> {product.stock > 0 ? <span className="text-green-600">In Stock ({product.stock})</span> : <span className="text-red-600">Out of Stock</span>}</li>
+                )}
+              </ul>
+            </div>
+          )}
           
           <div className="mb-8 flex-grow">
             <h3 className="font-semibold text-gray-700 mb-2">Description</h3>

@@ -10,6 +10,7 @@ const orderRoutes = require('./routes/orderRoutes');
 const companyRoutes = require('./routes/companyRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const sitemapRoutes = require('./routes/sitemapRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 dotenv.config({ path: path.resolve(__dirname, '.env') });
 
@@ -27,6 +28,16 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/companies', companyRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/sitemap.xml', sitemapRoutes);
+app.use('/api/users', userRoutes);
+
+app.get('/robots.txt', (req, res) => {
+  const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  res.type('text/plain');
+  res.send(`User-agent: *
+Allow: /
+
+Sitemap: ${baseUrl}/api/sitemap.xml`);
+});
 
 app.get('/', (req, res) => {
   res.send('Backend API is running...');
@@ -34,6 +45,7 @@ app.get('/', (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
+  console.error('SERVER ERROR:', err);
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
   res.status(statusCode);
   res.json({

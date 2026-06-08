@@ -74,8 +74,20 @@ const ProductCard = ({ product }) => {
         </div>
         
         <h3 className="text-xs sm:text-lg font-bold text-emerald-950 mb-1 leading-tight group-hover:text-emerald-700 transition line-clamp-2" title={`${product.name} ${product.potency || ''} ${product.dilution || ''}`}>
-          {product.name} {product.potency && <span className="font-medium text-emerald-700 ml-1">{product.potency}</span>} {product.dilution && <span className="font-medium text-emerald-700">{product.dilution}</span>}
+          {product.name} 
+          {product.potency && product.potency !== 'false' && product.potency !== 'null' && <span className="font-medium text-emerald-700 ml-1">{product.potency}</span>} 
+          {product.dilution && product.dilution !== 'false' && product.dilution !== 'null' && <span className="font-medium text-emerald-700 ml-1">{product.dilution}</span>}
         </h3>
+        
+        {product.shortDescription ? (
+          <p className="text-[10px] sm:text-xs text-slate-500 mb-2 font-medium bg-emerald-50/50 inline-block px-1.5 py-0.5 rounded" title={product.shortDescription}>
+            {product.shortDescription}
+          </p>
+        ) : (product.description && product.description !== 'No description available.' && product.description !== 'N/A' && (
+          <p className="text-[10px] sm:text-xs text-slate-500 mb-2 line-clamp-2 leading-relaxed" title={product.description}>
+            {product.description}
+          </p>
+        ))}
         
         <div className="mt-auto pt-2 sm:pt-4 flex flex-col gap-1.5 sm:gap-2 border-t border-slate-100">
           <span className="text-sm sm:text-xl font-black text-emerald-800">₹{product.price}</span>

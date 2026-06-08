@@ -29,11 +29,11 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (name, email, password) => {
+  const register = async (name, email, mobileNumber, password) => {
     try {
-      const { data } = await api.post('/auth/register', { name, email, password });
-      setUser(data);
+      const { data } = await api.post('/auth/register', { name, email, mobileNumber, password });
       localStorage.setItem('userInfo', JSON.stringify(data));
+      setUser(data);
       toast.success('Registration successful!');
       return true;
     } catch (error) {

@@ -3,15 +3,15 @@ import { Check, X, Plus, ChevronDown } from 'lucide-react';
 import api from '../services/api';
 import { toast } from 'react-toastify';
 
-const CompanySelect = ({ selectedCompany, onSelectCompany }) => {
-  const [companies, setCompanies] = useState([]);
+const CategorySelect = ({ selectedCategory, onSelectCategory }) => {
+  const [categories, setCategories] = useState([]);
   const [isAdding, setIsAdding] = useState(false);
-  const [newCompanyName, setNewCompanyName] = useState('');
+  const [newCategoryName, setNewCategoryName] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
-    fetchCompanies();
+    fetchCategories();
     
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -23,47 +23,52 @@ const CompanySelect = ({ selectedCompany, onSelectCompany }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const fetchCompanies = async () => {
+  const fetchCategories = async () => {
     try {
-      const { data } = await api.get('/companies');
-      setCompanies(data);
-      if (data.length > 0 && !selectedCompany) {
-        onSelectCompany(data[0].name);
-      }
+      const { data } = await api.get('/products/categories/unique');
+      const uniqueCats = data.filter(Boolean).map(c => c.toLowerCase());
+      
+      // Ensure default categories are present
+      const defaultCats = [
+        'mother tincture', 'liquid specialist & tablets', 'personal care',
+        'ointments & gels', 'herbal range', 'baby care', 'ear /eye drops',
+        'bio chemics & bio combinations tablets', 'liquid dilution'
+      ];
+      
+      const merged = [...new Set([...defaultCats, ...uniqueCats])].sort();
+      setCategories(merged);
     } catch (error) {
-      console.error('Error fetching companies', error);
+      console.error('Error fetching categories', error);
     }
   };
 
-  const handleAddCompany = async () => {
-    if (!newCompanyName.trim()) return;
-    try {
-      const { data } = await api.post('/companies', { name: newCompanyName });
-      setCompanies([...companies, data].sort((a, b) => a.name.localeCompare(b.name)));
-      onSelectCompany(data.name);
-      setNewCompanyName('');
-      setIsAdding(false);
-      setIsOpen(false);
-      toast.success('Company added!');
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Error adding company');
+  const handleAddCategory = () => {
+    if (!newCategoryName.trim()) return;
+    const cat = newCategoryName.trim().toLowerCase();
+    
+    if (!categories.includes(cat)) {
+      setCategories([cat, ...categories].sort());
     }
+    
+    onSelectCategory(cat);
+    setNewCategoryName('');
+    setIsAdding(false);
+    setIsOpen(false);
+    toast.success('Category selected!');
   };
 
-  const handleDeleteCompany = async (id, name, e) => {
-    e.stopPropagation(); // prevent selecting it when clicking delete
+  const handleDeleteCategory = async (categoryName, e) => {
+    e.stopPropagation();
     try {
-      await api.delete(`/companies/${id}`);
-      const updated = companies.filter(c => c._id !== id);
-      setCompanies(updated);
-      if (selectedCompany === name && updated.length > 0) {
-        onSelectCompany(updated[0].name);
-      } else if (updated.length === 0) {
-        onSelectCompany('');
+      await api.delete(`/products/categories/${encodeURIComponent(categoryName)}`);
+      const updated = categories.filter(c => c !== categoryName);
+      setCategories(updated);
+      if (selectedCategory === categoryName) {
+        onSelectCategory('');
       }
-      toast.info('Company removed');
+      toast.info('Category removed from all products');
     } catch (error) {
-      toast.error('Error deleting company');
+      toast.error('Error deleting category');
     }
   };
 
@@ -73,8 +78,8 @@ const CompanySelect = ({ selectedCompany, onSelectCompany }) => {
         className="w-full border rounded px-3 py-2 flex justify-between items-center cursor-pointer bg-white outline-none focus:border-teal-500 hover:border-teal-400 transition"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span className={selectedCompany ? 'text-gray-800' : 'text-gray-400'}>
-          {selectedCompany || 'Select a company...'}
+        <span className={selectedCategory ? 'text-gray-800 capitalize' : 'text-gray-400'}>
+          {selectedCategory ? selectedCategory : 'Select a category...'}
         </span>
         <ChevronDown size={18} className={`text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </div>
@@ -89,7 +94,7 @@ const CompanySelect = ({ selectedCompany, onSelectCompany }) => {
                 setIsAdding(true);
               }}
             >
-              <Plus size={16} /> <span className="text-sm font-medium">Add New Company...</span>
+              <Plus size={16} /> <span className="text-sm font-medium">Add New Category...</span>
             </div>
           ) : (
             <div 
@@ -99,22 +104,22 @@ const CompanySelect = ({ selectedCompany, onSelectCompany }) => {
               <input 
                 type="text" 
                 className="flex-grow border rounded px-2 py-1.5 text-sm outline-none focus:border-teal-500" 
-                placeholder="Type company name..."
-                value={newCompanyName}
-                onChange={(e) => setNewCompanyName(e.target.value)}
+                placeholder="Type category name..."
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
-                    handleAddCompany();
+                    handleAddCategory();
                   }
                 }}
               />
               <button 
                 type="button" 
-                onClick={handleAddCompany}
+                onClick={handleAddCategory}
                 className="text-emerald-600 bg-emerald-100 hover:bg-emerald-200 p-1.5 rounded transition shadow-sm"
-                title="Save Company"
+                title="Select Category"
               >
                 <Check size={16} />
               </button>
@@ -132,29 +137,26 @@ const CompanySelect = ({ selectedCompany, onSelectCompany }) => {
           )}
 
           <div className="max-h-48 overflow-y-auto">
-            {companies.map(c => (
+            {categories.map(c => (
               <div 
-                key={c._id} 
-                className={`flex justify-between items-center px-3 py-2 cursor-pointer hover:bg-emerald-50 ${selectedCompany === c.name ? 'bg-emerald-100 font-medium text-emerald-800' : 'text-gray-700'}`}
+                key={c} 
+                className={`flex justify-between items-center px-3 py-2 cursor-pointer hover:bg-emerald-50 ${selectedCategory === c ? 'bg-emerald-100 font-medium text-emerald-800' : 'text-gray-700'}`}
                 onClick={() => {
-                  onSelectCompany(c.name);
+                  onSelectCategory(c);
                   setIsOpen(false);
                 }}
               >
-                <span>{c.name}</span>
+                <span className="capitalize">{c}</span>
                 <button 
                   type="button" 
-                  onClick={(e) => handleDeleteCompany(c._id, c.name, e)}
+                  onClick={(e) => handleDeleteCategory(c, e)}
                   className="text-red-400 hover:text-red-600 p-1 rounded hover:bg-red-50 transition"
-                  title="Delete Company"
+                  title="Delete Category"
                 >
                   <X size={16} />
                 </button>
               </div>
             ))}
-            {companies.length === 0 && !isAdding && (
-              <div className="px-3 py-3 text-sm text-gray-500 italic">No companies found</div>
-            )}
           </div>
         </div>
       )}
@@ -162,4 +164,4 @@ const CompanySelect = ({ selectedCompany, onSelectCompany }) => {
   );
 };
 
-export default CompanySelect;
+export default CategorySelect;

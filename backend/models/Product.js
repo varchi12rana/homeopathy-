@@ -10,6 +10,10 @@ const productSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    shortDescription: {
+      type: String,
+      required: false,
+    },
     price: {
       type: Number,
       required: true,
@@ -49,6 +53,19 @@ const productSchema = mongoose.Schema(
       type: Boolean,
       required: false,
       default: false,
+    },
+    metaTitle: {
+      type: String,
+      required: false,
+    },
+    metaDescription: {
+      type: String,
+      required: false,
+    },
+    seoKeywords: {
+      type: [String],
+      required: false,
+      default: [],
     },
   },
   {

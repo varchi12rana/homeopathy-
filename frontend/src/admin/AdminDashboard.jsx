@@ -1,7 +1,7 @@
 import { useEffect, useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { Package, ListOrdered, PlusCircle, MessageSquare } from 'lucide-react';
+import { Package, ListOrdered, PlusCircle, MessageSquare, Users } from 'lucide-react';
 import api from '../services/api';
 
 const AdminDashboard = () => {
@@ -16,10 +16,14 @@ const AdminDashboard = () => {
       return;
     }
 
+
     const fetchData = async () => {
       try {
-        const { data: prods } = await api.get('/products');
+        const { data: prodsData } = await api.get('/products?limit=100000');
         const { data: comps } = await api.get('/companies');
+        
+        // Handle paginated response correctly
+        const prods = prodsData.products || prodsData;
         
         const compNames = comps.map(c => c.name);
         setCompanies(['All Products', ...compNames]);
@@ -58,6 +62,21 @@ const AdminDashboard = () => {
             </p>
           </Link>
         ))}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        <div className="bg-white rounded-xl shadow-md p-6">
+          <div className="flex items-center gap-3 mb-6 border-b pb-4">
+            <Users className="text-teal-600" size={24} />
+            <h2 className="text-xl font-bold text-gray-800">User Management</h2>
+          </div>
+          <Link 
+            to="/admin/users" 
+            className="w-full flex items-center justify-center gap-2 bg-teal-50 text-teal-700 font-medium py-3 px-4 rounded-md hover:bg-teal-100 transition"
+          >
+            View All Users
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
