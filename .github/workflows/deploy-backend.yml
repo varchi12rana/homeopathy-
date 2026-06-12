@@ -1,33 +1,27 @@
 name: Deploy Backend
-
 on:
   push:
     branches:
       - main
     paths:
       - 'backend/**'
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Deploy Backend
         uses: appleboy/ssh-action@v1.2.0
-
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-
           script: |
             cd /home/webuser/homeopathy
-
-            git reset --hard
-            git pull origin main
-
+            # Fix stale git lock files
+            rm -f .git/index.lock
+            rm -f .git/refs/remotes/origin/main.lock
+            git fetch --all
+            git reset --hard origin/main
             cd backend
-
             npm install
-
             pm2 restart homeopathy-backend
