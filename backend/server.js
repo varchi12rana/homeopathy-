@@ -40,7 +40,7 @@ Sitemap: ${baseUrl}/api/sitemap.xml`);
 });
 
 app.get('/', (req, res) => {
-  res.send('Backend API is running...');
+  res.send('Backend API is running fine...');
 });
 
 // Error handling middleware
