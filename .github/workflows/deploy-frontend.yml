@@ -1,41 +1,29 @@
 name: Deploy Frontend
-
 on:
   push:
     branches:
       - main
     paths:
       - 'frontend/**'
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Deploy Frontend
         uses: appleboy/ssh-action@v1.2.0
-
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-
           script: |
             cd /home/webuser/homeopathy
-
-            git reset --hard
-            git pull origin main
-
+            rm -f .git/index.lock
+            rm -f .git/refs/remotes/origin/main.lock
+            git fetch --all
+            git reset --hard origin/main
             cd frontend
-
             npm install
-
             npm run build
-
             rm -rf /var/www/frontend/*
-
             cp -r dist/* /var/www/frontend/
-
-            nginx -t
-
-            systemctl reload nginx
+            nginx -t && systemctl reload nginx
