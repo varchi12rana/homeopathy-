@@ -14,6 +14,11 @@ const registerUser = async (req, res) => {
   const { name, email, mobileNumber, password } = req.body;
 
   try {
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({ message: 'Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, a number, and a special character.' });
+    }
+
     const userExists = await User.findOne({ $or: [{ email }, { mobileNumber }] });
 
     if (userExists) {
@@ -110,6 +115,11 @@ const forgotPassword = async (req, res) => {
 const resetPassword = async (req, res) => {
   try {
     const { identifier, otp, password } = req.body;
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({ message: 'Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, a number, and a special character.' });
+    }
 
     const hashedOTP = crypto.createHash('sha256').update(otp).digest('hex');
 

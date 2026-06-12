@@ -27,6 +27,13 @@ const Register = () => {
       toast.error('Passwords do not match');
       return;
     }
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      toast.error('Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, a number, and a special character.');
+      return;
+    }
+
     const success = await register(name, email, mobileNumber, password);
     if (success) navigate('/');
   };
@@ -38,8 +45,8 @@ const Register = () => {
         <form onSubmit={submitHandler}>
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2">Full Name</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -48,8 +55,8 @@ const Register = () => {
           </div>
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2">Email Address</label>
-            <input 
-              type="email" 
+            <input
+              type="email"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -58,8 +65,8 @@ const Register = () => {
           </div>
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2">Mobile Number</label>
-            <input 
-              type="tel" 
+            <input
+              type="tel"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
               value={mobileNumber}
               onChange={(e) => setMobileNumber(e.target.value)}
@@ -71,15 +78,15 @@ const Register = () => {
           <div className="mb-4 relative">
             <label className="block text-gray-700 text-sm font-bold mb-2">Password</label>
             <div className="relative">
-              <input 
-                type={showPassword ? "text" : "password"} 
+              <input
+                type={showPassword ? "text" : "password"}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 pr-10"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-teal-600 focus:outline-none"
                 onClick={() => setShowPassword(!showPassword)}
                 tabIndex="-1"
@@ -91,15 +98,15 @@ const Register = () => {
           <div className="mb-6 relative">
             <label className="block text-gray-700 text-sm font-bold mb-2">Confirm Password</label>
             <div className="relative">
-              <input 
+              <input
                 type={showConfirmPassword ? "text" : "password"}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 pr-10"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
               />
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-teal-600 focus:outline-none"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 tabIndex="-1"
@@ -108,8 +115,8 @@ const Register = () => {
               </button>
             </div>
           </div>
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="w-full bg-teal-600 text-white font-bold py-3 px-4 rounded-md hover:bg-teal-700 transition"
           >
             Register
