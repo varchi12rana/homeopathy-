@@ -23,6 +23,7 @@ jobs:
           script: |
             cd /home/webuser/homeopathy
 
+            git reset --hard
             git pull origin main
 
             cd frontend
