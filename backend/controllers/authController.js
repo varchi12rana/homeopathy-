@@ -14,10 +14,7 @@ const registerUser = async (req, res) => {
   const { name, email, mobileNumber, password } = req.body;
 
   try {
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
-    if (!passwordRegex.test(password)) {
-      return res.status(400).json({ message: 'Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, a number, and a special character.' });
-    }
+
 
     const userExists = await User.findOne({ $or: [{ email }, { mobileNumber }] });
 
@@ -81,11 +78,11 @@ const forgotPassword = async (req, res) => {
 
     // Generate 6 digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    
+
     // Hash OTP before saving
     user.resetPasswordOTP = crypto.createHash('sha256').update(otp).digest('hex');
     user.resetPasswordOTPExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
-    
+
     await user.save();
 
     let message = '';
@@ -101,7 +98,7 @@ const forgotPassword = async (req, res) => {
       message = 'OTP sent successfully to your registered mobile number.';
     }
 
-    res.status(200).json({ 
+    res.status(200).json({
       message,
       target,
       testOtp: otp // Temporary for local testing without SMS gateway
@@ -116,10 +113,7 @@ const resetPassword = async (req, res) => {
   try {
     const { identifier, otp, password } = req.body;
 
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
-    if (!passwordRegex.test(password)) {
-      return res.status(400).json({ message: 'Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, a number, and a special character.' });
-    }
+
 
     const hashedOTP = crypto.createHash('sha256').update(otp).digest('hex');
 
