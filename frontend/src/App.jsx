@@ -25,6 +25,8 @@ import TrackOrder from './pages/TrackOrder';
 import ShippingPolicy from './pages/ShippingPolicy';
 import FAQs from './pages/FAQs';
 import ContactUs from './pages/ContactUs';
+import TermsAndConditions from './pages/TermsAndConditions';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 
 // Admin
 import AdminDashboard from './admin/AdminDashboard';
@@ -74,6 +76,8 @@ function App() {
               <Route path="/shipping-policy" element={<ShippingPolicy />} />
               <Route path="/faqs" element={<FAQs />} />
               <Route path="/contact-us" element={<ContactUs />} />
+              <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
               {/* Admin Routes */}
               <Route path="/admin" element={<div className="container mx-auto px-4 py-8"><AdminDashboard /></div>} />

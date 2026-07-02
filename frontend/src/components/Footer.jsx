@@ -49,7 +49,6 @@ const Footer = () => {
               <li><Link to="/track-order" className="hover:text-white transition">Track Order</Link></li>
               <li><Link to="/shipping-policy" className="hover:text-white transition">Shipping Policy</Link></li>
               <li><Link to="/faqs" className="hover:text-white transition">FAQs</Link></li>
-              <li><Link to="/contact-us" className="hover:text-white transition">Contact Us</Link></li>
             </ul>
           </div>
 
@@ -88,11 +87,10 @@ const Footer = () => {
           <p className="text-sm text-emerald-400 text-center md:text-left">
             &copy; {new Date().getFullYear()} HOMEOVIA. All rights reserved.
           </p>
-          <div className="flex gap-4">
-            <a href="#" className="w-8 h-8 rounded-full bg-emerald-800/80 flex items-center justify-center hover:bg-emerald-500 hover:text-emerald-950 transition font-bold text-xs">Fb</a>
-            <a href="#" className="w-8 h-8 rounded-full bg-emerald-800/80 flex items-center justify-center hover:bg-emerald-500 hover:text-emerald-950 transition font-bold text-xs">Tw</a>
-            <a href="#" className="w-8 h-8 rounded-full bg-emerald-800/80 flex items-center justify-center hover:bg-emerald-500 hover:text-emerald-950 transition font-bold text-xs">Ig</a>
-            <a href="#" className="w-8 h-8 rounded-full bg-emerald-800/80 flex items-center justify-center hover:bg-emerald-500 hover:text-emerald-950 transition font-bold text-xs">Yt</a>
+          <div className="flex gap-6 text-sm text-emerald-400">
+            <Link to="/contact-us" className="hover:text-emerald-50 transition">Contact Us</Link>
+            <Link to="/terms-and-conditions" className="hover:text-emerald-50 transition">Terms & Conditions</Link>
+            <Link to="/privacy-policy" className="hover:text-emerald-50 transition">Privacy Policy</Link>
           </div>
         </div>
       </div>
