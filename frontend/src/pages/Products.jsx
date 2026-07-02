@@ -9,6 +9,7 @@ const Products = () => {
   const [loading, setLoading] = useState(true);
   const [sortOption, setSortOption] = useState('default');
   const [potencyFilter, setPotencyFilter] = useState('');
+  const [initialFilter, setInitialFilter] = useState('');
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
   const [total, setTotal] = useState(0);
@@ -27,23 +28,10 @@ const Products = () => {
   // Reset page when filters change
   useEffect(() => {
     setPage(1);
-  }, [category, company, keyword, sortOption]);
+  }, [category, company, keyword, sortOption, initialFilter]);
 
-  const handleAlphabetClick = async (letter) => {
-    try {
-      let url = `/products/alphabet-page?letter=${letter}`;
-      if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
-      else if (category) url += `&category=${encodeURIComponent(category)}`;
-      else if (company) url += `&company=${encodeURIComponent(company)}`;
-      
-      const { data } = await api.get(url);
-      if (data.page) {
-        setPage(data.page);
-        setSortOption('name_asc'); // Force name sort to make A-Z jump logical
-      }
-    } catch (error) {
-      console.error('Failed to jump to alphabet', error);
-    }
+  const handleAlphabetClick = (letter) => {
+    setInitialFilter(prev => prev === letter ? '' : letter);
   };
 
   useEffect(() => {
@@ -57,6 +45,10 @@ const Products = () => {
           url += `&category=${encodeURIComponent(category)}`;
         } else if (company) {
           url += `&company=${encodeURIComponent(company)}`;
+        }
+        
+        if (initialFilter) {
+          url += `&initial=${initialFilter}`;
         }
         const { data } = await api.get(url);
         
@@ -75,7 +67,7 @@ const Products = () => {
       }
     };
     fetchProducts();
-  }, [category, company, keyword, page, sortOption]);
+  }, [category, company, keyword, page, sortOption, initialFilter]);
 
   const pageTitle = keyword ? `Search Results for "${keyword}"` : category ? `${category} Medicines` : company ? `${company} Products` : 'All Homeopathic Remedies';
 
@@ -95,13 +87,16 @@ const Products = () => {
           </p>
         </div>
         
-        {/* A-Z Alphabet Row */}
         <div className="flex flex-wrap justify-center gap-2 mb-8 bg-white p-4 rounded-xl shadow-sm border border-emerald-50">
           {'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(letter => (
             <button
               key={letter}
               onClick={() => handleAlphabetClick(letter)}
-              className="w-8 h-8 flex items-center justify-center rounded-md font-medium text-emerald-800 hover:bg-emerald-600 hover:text-white transition-colors text-sm border border-emerald-100"
+              className={`w-8 h-8 flex items-center justify-center rounded-md font-medium transition-colors text-sm border ${
+                initialFilter === letter
+                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-md'
+                  : 'text-emerald-800 hover:bg-emerald-600 hover:text-white border-emerald-100'
+              }`}
             >
               {letter}
             </button>

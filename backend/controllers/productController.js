@@ -6,7 +6,7 @@ const getProducts = async (req, res) => {
     const keyword = req.query.keyword
       ? {
           name: {
-            $regex: req.query.keyword,
+            $regex: '^' + req.query.keyword,
             $options: 'i',
           },
         }
@@ -20,12 +20,16 @@ const getProducts = async (req, res) => {
       ? { company: { $regex: new RegExp('^' + req.query.company + '$', 'i') } } 
       : {};
       
+    const initial = req.query.initial
+      ? { name: { $regex: '^' + req.query.initial, $options: 'i' } }
+      : {};
+      
     const isBestSeller = req.query.isBestSeller === 'true' ? { isBestSeller: true } : {};
 
     const pageSize = req.query.limit ? Number(req.query.limit) : 24;
     const page = Number(req.query.page) || 1;
 
-    const query = { ...keyword, ...category, ...company, ...isBestSeller };
+    const query = { ...keyword, ...category, ...company, ...isBestSeller, ...initial };
 
     // Handle Sorting
     const sortOption = req.query.sortOption || 'default';
@@ -69,7 +73,7 @@ const getAlphabetPage = async (req, res) => {
       return res.status(400).json({ message: 'Valid letter is required' });
     }
 
-    const keyword = req.query.keyword ? { name: { $regex: req.query.keyword, $options: 'i' } } : {};
+    const keyword = req.query.keyword ? { name: { $regex: '^' + req.query.keyword, $options: 'i' } } : {};
     const category = req.query.category ? { category: { $regex: new RegExp('^' + req.query.category + '$', 'i') } } : {};
     const company = req.query.company ? { company: { $regex: new RegExp('^' + req.query.company + '$', 'i') } } : {};
     const isBestSeller = req.query.isBestSeller === 'true' ? { isBestSeller: true } : {};

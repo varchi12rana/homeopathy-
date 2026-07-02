@@ -22,7 +22,7 @@ const Navbar = () => {
   const location = useLocation();
 
   useEffect(() => {
-    if (keyword.trim().length < 2) {
+    if (keyword.trim().length < 1) {
       setSuggestions([]);
       return;
     }
@@ -30,7 +30,8 @@ const Navbar = () => {
     const fetchSuggestions = async () => {
       try {
         const { data } = await api.get(`/products?keyword=${encodeURIComponent(keyword)}`);
-        setSuggestions(data.slice(0, 5));
+        const productsArray = data.products || data;
+        setSuggestions(productsArray.slice(0, 5));
       } catch (error) {
         console.error('Failed to fetch suggestions', error);
       }
