@@ -27,6 +27,8 @@ import FAQs from './pages/FAQs';
 import ContactUs from './pages/ContactUs';
 import TermsAndConditions from './pages/TermsAndConditions';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import PaymentSuccess from './pages/PaymentSuccess';
+import PaymentFailed from './pages/PaymentFailed';
 
 // Admin
 import AdminDashboard from './admin/AdminDashboard';
@@ -78,6 +80,8 @@ function App() {
               <Route path="/contact-us" element={<ContactUs />} />
               <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
+              <Route path="/payment-failed" element={<PaymentFailed />} />
 
               {/* Admin Routes */}
               <Route path="/admin" element={<div className="container mx-auto px-4 py-8"><AdminDashboard /></div>} />

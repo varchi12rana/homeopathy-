@@ -5,6 +5,16 @@ import { AuthContext } from '../context/AuthContext';
 import api from '../services/api';
 import { toast } from 'react-toastify';
 
+const loadScript = (src) => {
+  return new Promise((resolve) => {
+    const script = document.createElement('script');
+    script.src = src;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
+
 const Checkout = () => {
   const { cartItems, clearCart } = useContext(CartContext);
   const { user } = useContext(AuthContext);
@@ -19,6 +29,7 @@ const Checkout = () => {
   const [prepaidMethod, setPrepaidMethod] = useState('Credit / Debit Card');
   const [upiId, setUpiId] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -34,24 +45,99 @@ const Checkout = () => {
   const codCharge = paymentMethod === 'Cash on Delivery' ? 50 : 0;
   const finalPrice = itemsPrice + shippingPrice + codCharge;
 
+  const handleRazorpayPayment = async (orderData) => {
+    const res = await loadScript('https://checkout.razorpay.com/v1/checkout.js');
+    if (!res) {
+      toast.error('Razorpay SDK failed to load. Are you online?');
+      setIsProcessing(false);
+      return;
+    }
+
+    try {
+      const { data: { orderId, razorpayOrderId, amount, currency, keyId } } = await api.post('/payment/create-order', orderData);
+
+      const options = {
+        key: keyId,
+        amount: amount.toString(),
+        currency: currency,
+        name: 'Homeovia',
+        description: 'Order Payment',
+        image: '/logo 2.png',
+        order_id: razorpayOrderId,
+        handler: async function (response) {
+          try {
+            setIsProcessing(true);
+            const verifyData = {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              orderId: orderId
+            };
+            await api.post('/payment/verify', verifyData);
+            clearCart();
+            setIsProcessing(false);
+            navigate(`/payment-success?orderId=${orderId}`);
+          } catch (err) {
+            console.error(err);
+            setIsProcessing(false);
+            navigate('/payment-failed');
+          }
+        },
+        prefill: {
+          name: user.name,
+          email: user.email,
+          contact: phoneNumber
+        },
+        theme: {
+          color: '#047857' // emerald-700
+        },
+        modal: {
+          ondismiss: function() {
+            setIsProcessing(false);
+            toast.info('Payment cancelled');
+          }
+        }
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to initiate payment');
+      setIsProcessing(false);
+    }
+  };
+
   const placeOrderHandler = async (e) => {
     e.preventDefault();
+    if (isProcessing) return;
+    setIsProcessing(true);
+
     try {
       const finalPaymentMethod = paymentMethod === 'Prepaid' 
         ? `Prepaid - ${prepaidMethod}${prepaidMethod === 'UPI' ? ` (${upiId})` : ''}` 
         : 'Cash on Delivery';
 
-      await api.post('/orders', {
+      const orderData = {
         orderItems: cartItems,
         shippingAddress: { address, city, postalCode, country, phoneNumber },
         paymentMethod: finalPaymentMethod,
         totalPrice: finalPrice,
-      });
-      clearCart();
-      toast.success('Order done successfully');
-      setShowSuccessModal(true);
+      };
+
+      if (paymentMethod === 'Prepaid') {
+        await handleRazorpayPayment(orderData);
+      } else {
+        await api.post('/orders', orderData);
+        clearCart();
+        toast.success('Order placed successfully');
+        setShowSuccessModal(true);
+        setIsProcessing(false);
+      }
     } catch (error) {
+      console.error(error);
       toast.error('Failed to place order');
+      setIsProcessing(false);
     }
   };
 
@@ -239,9 +325,10 @@ const Checkout = () => {
             <button 
               type="submit"
               form="checkout-form"
-              className="w-full bg-teal-600 text-white font-bold py-3 rounded-md hover:bg-teal-700 transition"
+              disabled={isProcessing}
+              className={`w-full text-white font-bold py-3 rounded-md transition ${isProcessing ? 'bg-gray-400 cursor-not-allowed' : 'bg-teal-600 hover:bg-teal-700'}`}
             >
-              Place Order
+              {isProcessing ? 'Processing...' : 'Place Order'}
             </button>
           </div>
         </div>

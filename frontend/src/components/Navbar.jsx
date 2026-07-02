@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { ShoppingCart, User as UserIcon, LogOut, Shield, Search, Heart, Leaf, ChevronDown, Package, MessageSquare } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import api from '../services/api';
+import AdminNotificationBell from './AdminNotificationBell';
 
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
@@ -189,9 +190,12 @@ const Navbar = () => {
             {user ? (
               <div className="flex items-center gap-2 sm:gap-4 border-l border-gray-200 pl-2 sm:pl-4 ml-1 sm:ml-2">
                 {user.role === 'admin' && (
-                  <Link to="/admin" className="text-emerald-600 hover:text-emerald-800 flex items-center gap-1" title="Admin Panel">
-                    <Shield size={20} /> <span className="hidden xl:inline text-sm font-medium">Admin</span>
-                  </Link>
+                  <>
+                    <AdminNotificationBell />
+                    <Link to="/admin" className="text-emerald-600 hover:text-emerald-800 flex items-center gap-1" title="Admin Panel">
+                      <Shield size={20} /> <span className="hidden xl:inline text-sm font-medium">Admin</span>
+                    </Link>
+                  </>
                 )}
                 <div className="flex items-center gap-2 sm:gap-3">
                   <UserIcon size={20} className="text-emerald-600" />
