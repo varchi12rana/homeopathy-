@@ -30,7 +30,11 @@ const BulkUpload = () => {
         const workbook = XLSX.read(data, { type: 'binary' });
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
-        const products = XLSX.utils.sheet_to_json(sheet);
+        const rawProducts = XLSX.utils.sheet_to_json(sheet);
+        // Filter out completely empty rows
+        const products = rawProducts.filter(row => {
+          return Object.values(row).some(val => val !== null && val !== undefined && String(val).trim() !== '');
+        });
 
         if (products.length === 0) {
           toast.error('The uploaded file is empty.');
@@ -40,6 +44,7 @@ const BulkUpload = () => {
 
         const CHUNK_SIZE = 500;
         let totalSuccess = 0;
+        let totalUnchanged = 0;
         let allFailed = [];
 
         for (let i = 0; i < products.length; i += CHUNK_SIZE) {
@@ -49,6 +54,7 @@ const BulkUpload = () => {
             const response = await api.post('/products/bulk', chunk);
             
             totalSuccess += response.data.successCount;
+            if (response.data.unchangedCount) totalUnchanged += response.data.unchangedCount;
             if (response.data.failedProducts) {
               allFailed = [...allFailed, ...response.data.failedProducts];
             }
@@ -56,6 +62,7 @@ const BulkUpload = () => {
             // Check if it's a partial success
             if (error.response && error.response.status === 207) {
                totalSuccess += error.response.data.successCount;
+               if (error.response.data.unchangedCount) totalUnchanged += error.response.data.unchangedCount;
                if (error.response.data.failedProducts) {
                  allFailed = [...allFailed, ...error.response.data.failedProducts];
                }
@@ -71,6 +78,7 @@ const BulkUpload = () => {
         setResults({
           totalProcessed: products.length,
           totalSuccess,
+          totalUnchanged,
           totalFailed: allFailed.length,
           failedList: allFailed,
         });
@@ -129,14 +137,18 @@ const BulkUpload = () => {
       {results && (
         <div className="mt-8">
           <h3 className="text-xl font-bold mb-4 text-gray-800">Upload Results</h3>
-          <div className="grid grid-cols-3 gap-4 mb-6 text-center">
+          <div className="grid grid-cols-4 gap-4 mb-6 text-center">
             <div className="bg-blue-100 p-4 rounded-lg">
               <p className="text-lg font-bold text-blue-800">{results.totalProcessed}</p>
               <p className="text-sm text-blue-600">Total Processed</p>
             </div>
             <div className="bg-green-100 p-4 rounded-lg">
               <p className="text-lg font-bold text-green-800">{results.totalSuccess}</p>
-              <p className="text-sm text-green-600">Successfully Inserted</p>
+              <p className="text-sm text-green-600">Inserted / Updated</p>
+            </div>
+            <div className="bg-yellow-100 p-4 rounded-lg">
+              <p className="text-lg font-bold text-yellow-800">{results.totalUnchanged}</p>
+              <p className="text-sm text-yellow-600">Skipped (Unchanged)</p>
             </div>
             <div className="bg-red-100 p-4 rounded-lg">
               <p className="text-lg font-bold text-red-800">{results.totalFailed}</p>

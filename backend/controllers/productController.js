@@ -226,18 +226,24 @@ const createProductsBulk = async (req, res) => {
           continue; 
         }
 
-        if (normalizedKey.includes('name') || normalizedKey.includes('title')) p.name = val;
+        if (normalizedKey.includes('name') || normalizedKey.includes('title') || normalizedKey === 'product') p.name = val;
         else if (normalizedKey.includes('short desc') || normalizedKey.includes('main point') || normalizedKey.includes('uses') || normalizedKey.includes('use for')) p.shortDescription = val;
         else if (normalizedKey.includes('desc') || normalizedKey.includes('detail')) p.description = val;
         else if (normalizedKey.includes('price') || normalizedKey.includes('mrp') || normalizedKey.includes('cost') || normalizedKey.includes('rate') || normalizedKey.includes('amount') || normalizedKey.includes('rs')) p.price = val;
         else if (normalizedKey.includes('potency')) p.potency = val;
         else if (normalizedKey.includes('dilution') || normalizedKey.includes('ml') || normalizedKey.includes('size') || normalizedKey.includes('vol')) p.dilution = val;
-        else if (normalizedKey.includes('mother') && normalizedKey.includes('tincture')) p.motherTincture = val;
+        else if (normalizedKey.includes('mother') && normalizedKey.includes('tincture')) {
+          const bVal = String(val).trim().toLowerCase();
+          p.motherTincture = (bVal === 'true' || bVal === '1' || bVal === 'yes');
+        }
         else if (normalizedKey.includes('company') || normalizedKey.includes('brand') || normalizedKey.includes('manufacturer') || normalizedKey.includes('mfg')) p.company = val;
         else if (normalizedKey.includes('stock') || normalizedKey.includes('qty') || normalizedKey.includes('quantity')) p.stock = val;
         else if (normalizedKey.includes('image') || normalizedKey.includes('pic') || normalizedKey.includes('photo') || normalizedKey.includes('url') || normalizedKey.includes('link')) p.image = val;
         else if (normalizedKey.includes('category') || normalizedKey.includes('type') || normalizedKey.includes('group')) p.category = val;
-        else if (normalizedKey.includes('bestseller') || normalizedKey.includes('best seller')) p.isBestSeller = val;
+        else if (normalizedKey.includes('bestseller') || normalizedKey.includes('best seller')) {
+          const bVal = String(val).trim().toLowerCase();
+          p.isBestSeller = (bVal === 'true' || bVal === '1' || bVal === 'yes');
+        }
       }
 
       // Carry-over logic for merged/blank cells in Excel
@@ -253,16 +259,10 @@ const createProductsBulk = async (req, res) => {
         p.category = lastSeenCategory;
       }
 
-      if (p.name && String(p.name).trim() !== '') {
-        lastSeenName = p.name;
-      } else {
-        p.name = lastSeenName;
-      }
-
-      if (p.description && String(p.description).trim() !== '') {
-        lastSeenDescription = p.description;
-      } else {
-        p.description = lastSeenDescription;
+      // Default description if completely missing, so it doesn't fail validation just for description,
+      // but do NOT carry over from the previous product.
+      if (!p.description || String(p.description).trim() === '') {
+        p.description = 'No description available.';
       }
 
       // Clean and parse price (remove ₹, $, etc.)
@@ -293,6 +293,7 @@ const createProductsBulk = async (req, res) => {
 
     let insertedCount = 0;
     let modifiedCount = 0;
+    let unchangedCount = 0;
     let productsNeedingAI = [];
     
     if (validProducts.length > 0) {
@@ -330,6 +331,15 @@ const createProductsBulk = async (req, res) => {
         const result = await Product.bulkWrite(bulkOps, { ordered: false });
         insertedCount = result.upsertedCount || 0;
         modifiedCount = result.modifiedCount || 0;
+        const matchedCount = result.matchedCount || 0;
+        unchangedCount = matchedCount - modifiedCount;
+        if (unchangedCount < 0) unchangedCount = 0;
+
+        if (result.mongoose && result.mongoose.validationErrors && result.mongoose.validationErrors.length > 0) {
+          result.mongoose.validationErrors.forEach(err => {
+            failedProducts.push({ index: 'Unknown', reason: err.message });
+          });
+        }
 
         const upsertedIdsArray = Object.values(result.upsertedIds || {});
         if (upsertedIdsArray.length > 0) {
@@ -340,6 +350,9 @@ const createProductsBulk = async (req, res) => {
         if (insertError.name === 'BulkWriteError') {
           insertedCount = insertError.result?.nUpserted || 0;
           modifiedCount = insertError.result?.nModified || 0;
+          const matchedCount = insertError.result?.nMatched || 0;
+          unchangedCount = matchedCount - modifiedCount;
+          if (unchangedCount < 0) unchangedCount = 0;
           
           const upsertedIdsArray = insertError.result?.upserted ? insertError.result.upserted.map(x => x._id) : [];
           if (upsertedIdsArray.length > 0) {
@@ -373,10 +386,11 @@ const createProductsBulk = async (req, res) => {
     }
 
     res.status(201).json({
-      message: `Bulk sync complete. Added ${insertedCount} new products. Updated ${modifiedCount} existing products. Failed ${failedProducts.length}. AI will generate descriptions for ${productsNeedingAI.length} items.`,
+      message: `Bulk sync complete. Added ${insertedCount} new products. Updated ${modifiedCount} existing products. Skipped ${unchangedCount} unchanged products. Failed ${failedProducts.length}. AI will generate descriptions for ${productsNeedingAI.length} items.`,
       successCount: insertedCount + modifiedCount,
       insertedCount,
       modifiedCount,
+      unchangedCount,
       failedCount: failedProducts.length,
       failedProducts
     });
