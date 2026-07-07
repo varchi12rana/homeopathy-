@@ -58,7 +58,7 @@ const AdminUsers = () => {
               </tr>
             </thead>
             <tbody>
-              {users.map((u) => (
+              {[...users].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).map((u) => (
                 <tr key={u._id} className="border-b hover:bg-gray-50 transition">
                   <td className="p-4 font-medium text-gray-800">{u.name}</td>
                   <td className="p-4 text-gray-600">

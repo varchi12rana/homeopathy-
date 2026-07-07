@@ -27,7 +27,7 @@ const addOrderItems = async (req, res) => {
 
 const getMyOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ user: req.user._id });
+    const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 });
     res.json(orders);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -36,7 +36,7 @@ const getMyOrders = async (req, res) => {
 
 const getOrders = async (req, res) => {
   try {
-    const orders = await Order.find({}).populate('user', 'id name');
+    const orders = await Order.find({}).populate('user', 'id name').sort({ createdAt: -1 });
     res.json(orders);
   } catch (error) {
     res.status(500).json({ message: error.message });

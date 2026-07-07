@@ -39,7 +39,7 @@ const Orders = () => {
     const txnMatch = order.razorpayPaymentId?.toLowerCase().includes(searchLower);
     const nameMatch = order.user?.name?.toLowerCase().includes(searchLower);
     return orderIdMatch || txnMatch || nameMatch;
-  });
+  }).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   const statusUpdateHandler = async (id, status) => {
     try {

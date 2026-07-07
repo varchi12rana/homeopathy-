@@ -58,7 +58,7 @@ const MyOrders = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {orders.map((order) => (
+                {[...orders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).map((order) => (
                   <tr key={order._id} className="hover:bg-gray-50 transition">
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">...{order._id.substring(18)}</td>
                     <td className="px-6 py-4 text-sm text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</td>
