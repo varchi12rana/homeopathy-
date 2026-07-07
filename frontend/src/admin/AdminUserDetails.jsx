@@ -147,8 +147,10 @@ const AdminUserDetails = () => {
                         <span className={`px-2 py-1 rounded-full text-xs font-bold
                           ${order.orderStatus === 'Delivered' ? 'bg-green-100 text-green-700' : 
                             order.orderStatus === 'Shipped' ? 'bg-blue-100 text-blue-700' : 
+                            order.orderStatus === 'Processing' ? 'bg-teal-100 text-teal-700' : 
+                            order.orderStatus === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 
                             order.orderStatus === 'Cancelled' ? 'bg-red-100 text-red-700' : 
-                            'bg-orange-100 text-orange-700'}`}>
+                            'bg-gray-100 text-gray-700'}`}>
                           {order.orderStatus}
                         </span>
                       </td>

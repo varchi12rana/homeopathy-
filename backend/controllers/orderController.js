@@ -48,8 +48,12 @@ const updateOrderStatus = async (req, res) => {
     const order = await Order.findById(req.params.id);
 
     if (order) {
-      order.orderStatus = req.body.status || order.orderStatus;
-      const updatedOrder = await order.save();
+      // Use findByIdAndUpdate to avoid validation errors on legacy orders missing required fields
+      const updatedOrder = await Order.findByIdAndUpdate(
+        req.params.id,
+        { orderStatus: req.body.status || order.orderStatus },
+        { new: true }
+      );
       res.json(updatedOrder);
     } else {
       res.status(404).json({ message: 'Order not found' });
