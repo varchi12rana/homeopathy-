@@ -187,7 +187,7 @@ const ProductDetails = () => {
                 
                 {availableSizes.length > 0 && (
                   <div className="flex items-center gap-3">
-                    <span className="font-medium text-sm text-gray-600 w-28">Dilution / Size:</span>
+                    <span className="font-medium text-sm text-gray-600 w-28">Size:</span>
                     {availableSizes.length > 1 ? (
                       <select 
                         value={currentSize} 

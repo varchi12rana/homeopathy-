@@ -186,7 +186,7 @@ const CompanyProducts = () => {
                   </th>
                   <th className="px-6 py-4">Image</th>
                   <th className="px-6 py-4">Name</th>
-                  <th className="px-6 py-4">Potency/Dilution</th>
+                  <th className="px-6 py-4">Potency/Size</th>
                   <th className="px-6 py-4">Price</th>
                   <th className="px-6 py-4">Stock</th>
                   <th className="px-6 py-4">Actions</th>
