@@ -9,6 +9,9 @@ const AdminCompanies = () => {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newCompanyName, setNewCompanyName] = useState('');
+  const [newCompanyCountry, setNewCompanyCountry] = useState('India');
+  const [newCompanyTagline, setNewCompanyTagline] = useState('Excellence in Homeopathy');
+  const [newCompanySlider, setNewCompanySlider] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -37,9 +40,17 @@ const AdminCompanies = () => {
     e.preventDefault();
     if (!newCompanyName.trim()) return;
     try {
-      const { data } = await api.post('/companies', { name: newCompanyName });
+      const { data } = await api.post('/companies', { 
+        name: newCompanyName,
+        country: newCompanyCountry,
+        tagline: newCompanyTagline,
+        showOnSlider: newCompanySlider
+      });
       setCompanies([...companies, data].sort((a, b) => a.name.localeCompare(b.name)));
       setNewCompanyName('');
+      setNewCompanyCountry('India');
+      setNewCompanyTagline('Excellence in Homeopathy');
+      setNewCompanySlider(true);
       setIsAdding(false);
       toast.success('Company added!');
     } catch (error) {
@@ -96,21 +107,66 @@ const AdminCompanies = () => {
             <Plus size={18} /> Add Company
           </button>
         ) : (
-          <form onSubmit={handleAddCompany} className="flex items-center gap-2">
-            <input 
-              type="text" 
-              placeholder="Company Name" 
-              className="border rounded px-3 py-2 outline-none focus:border-teal-500 min-w-[200px]"
-              value={newCompanyName}
-              onChange={e => setNewCompanyName(e.target.value)}
-              autoFocus
-            />
-            <button type="submit" className="bg-emerald-600 text-white p-2 rounded hover:bg-emerald-700 transition" title="Save">
-              <Check size={20} />
-            </button>
-            <button type="button" onClick={() => setIsAdding(false)} className="bg-gray-200 text-gray-600 p-2 rounded hover:bg-gray-300 transition" title="Cancel">
-              <X size={20} />
-            </button>
+          <form onSubmit={handleAddCompany} className="flex flex-col sm:flex-row items-center gap-3 bg-gray-50 p-4 rounded-lg border w-full lg:w-auto">
+            <div className="flex flex-col">
+              <label className="text-xs text-gray-500 mb-1 font-medium">Company Name</label>
+              <input 
+                type="text" 
+                placeholder="e.g. Boiron" 
+                className="border rounded px-3 py-1.5 outline-none focus:border-teal-500 min-w-[150px]"
+                value={newCompanyName}
+                onChange={e => setNewCompanyName(e.target.value)}
+                autoFocus
+                required
+              />
+            </div>
+            
+            <div className="flex flex-col">
+              <label className="text-xs text-gray-500 mb-1 font-medium">Country</label>
+              <input 
+                type="text" 
+                placeholder="e.g. France" 
+                className="border rounded px-3 py-1.5 outline-none focus:border-teal-500 min-w-[120px]"
+                value={newCompanyCountry}
+                onChange={e => setNewCompanyCountry(e.target.value)}
+              />
+            </div>
+
+            <div className="flex flex-col">
+              <label className="text-xs text-gray-500 mb-1 font-medium">Tagline</label>
+              <input 
+                type="text" 
+                placeholder="e.g. World Leader" 
+                className="border rounded px-3 py-1.5 outline-none focus:border-teal-500 min-w-[180px]"
+                value={newCompanyTagline}
+                onChange={e => setNewCompanyTagline(e.target.value)}
+              />
+            </div>
+
+            <div className="flex flex-col items-center justify-center pt-2">
+              <label className="flex items-center cursor-pointer gap-2 text-sm text-gray-700 font-medium">
+                <div className="relative">
+                  <input 
+                    type="checkbox" 
+                    className="sr-only" 
+                    checked={newCompanySlider}
+                    onChange={(e) => setNewCompanySlider(e.target.checked)}
+                  />
+                  <div className={`block w-10 h-6 rounded-full transition ${newCompanySlider ? 'bg-teal-500' : 'bg-gray-300'}`}></div>
+                  <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition transform ${newCompanySlider ? 'translate-x-4' : ''}`}></div>
+                </div>
+                Slider
+              </label>
+            </div>
+
+            <div className="flex items-center gap-2 mt-2 sm:mt-0 pt-3 sm:pt-4">
+              <button type="submit" className="bg-emerald-600 text-white p-1.5 rounded hover:bg-emerald-700 transition" title="Save">
+                <Check size={20} />
+              </button>
+              <button type="button" onClick={() => setIsAdding(false)} className="bg-gray-200 text-gray-600 p-1.5 rounded hover:bg-gray-300 transition" title="Cancel">
+                <X size={20} />
+              </button>
+            </div>
           </form>
         )}
       </div>
