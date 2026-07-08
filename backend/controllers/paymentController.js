@@ -1,18 +1,18 @@
-const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const Notification = require('../models/Notification');
+const Payment = require('../models/Payment');
+const PaymentLog = require('../models/PaymentLog');
+const razorpayService = require('../services/razorpayService');
 const { generateInvoice } = require('../utils/invoiceGenerator');
 const { sendOrderConfirmationEmail } = require('../utils/emailService');
 const { sendNewOrderNotification } = require('../utils/whatsappService');
 
 const dispatchAdminNotification = async (req, order) => {
   try {
-    // 1. Send WhatsApp Notification asynchronously (no await to prevent blocking)
     sendNewOrderNotification(order).catch(err => console.error('WhatsApp Error:', err));
 
-    // 2. Save Notification to DB
     const title = `New Order: #${order._id.toString().substring(18)}`;
     const message = `${order.user.name} placed an order for ₹${order.totalPrice.toFixed(2)}`;
     
@@ -23,7 +23,6 @@ const dispatchAdminNotification = async (req, order) => {
     });
     const savedNotification = await notification.save();
 
-    // 3. Emit Socket.IO Event
     const io = req.app.get('io');
     if (io) {
       io.emit('new_order_notification', {
@@ -41,14 +40,6 @@ const dispatchAdminNotification = async (req, order) => {
   }
 };
 
-// Create a Razorpay instance
-const getRazorpayInstance = () => {
-  return new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET,
-  });
-};
-
 const createOrder = async (req, res) => {
   try {
     const { orderItems, shippingAddress, paymentMethod } = req.body;
@@ -57,7 +48,6 @@ const createOrder = async (req, res) => {
       return res.status(400).json({ message: 'No order items' });
     }
 
-    // Calculate total from database
     let itemsPrice = 0;
     const validatedItems = [];
     
@@ -77,95 +67,148 @@ const createOrder = async (req, res) => {
     }
 
     const shippingPrice = itemsPrice < 500 ? 100 : 0;
-    // We assume this is prepaid so no COD charge
     const totalPrice = itemsPrice + shippingPrice;
 
-    const razorpay = getRazorpayInstance();
     const options = {
-      amount: Math.round(totalPrice * 100), // amount in the smallest currency unit
+      amount: Math.round(totalPrice * 100),
       currency: 'INR',
       receipt: `rcpt_${Date.now()}`
     };
 
-    const razorpayOrder = await razorpay.orders.create(options);
+    const razorpayOrder = await razorpayService.createOrder(options);
 
-    // Save initial order in DB with pending status
-    const order = new Order({
+    // Instead of Order, create a Payment document to hold state temporarily
+    const payment = new Payment({
       user: req.user._id,
-      products: validatedItems,
-      shippingAddress,
-      paymentMethod,
-      totalPrice,
-      paymentStatus: 'Pending',
       razorpayOrderId: razorpayOrder.id,
+      amount: totalPrice,
+      currency: 'INR',
+      status: 'Pending',
+      paymentMethod,
+      checkoutData: {
+        orderItems: validatedItems,
+        shippingAddress,
+        totalPrice
+      }
     });
 
-    const createdOrder = await order.save();
+    const savedPayment = await payment.save();
+
+    await PaymentLog.create({
+      paymentId: savedPayment._id,
+      razorpayOrderId: razorpayOrder.id,
+      event: 'Payment Started',
+      payload: options
+    });
 
     res.status(200).json({
-      orderId: createdOrder._id,
+      paymentId: savedPayment._id,
       razorpayOrderId: razorpayOrder.id,
       amount: razorpayOrder.amount,
       currency: razorpayOrder.currency,
-      keyId: process.env.RAZORPAY_KEY_ID
+      keyId: process.env.RAZORPAY_KEY_ID ? process.env.RAZORPAY_KEY_ID.trim() : ''
     });
 
   } catch (error) {
     console.error('Error creating razorpay order:', error);
-    res.status(500).json({ message: 'Failed to create payment order' });
+    res.status(500).json({ message: error.message || 'Failed to create payment order' });
   }
+};
+
+const processSuccessfulPayment = async (req, payment, razorpayPaymentId, signature) => {
+  // Prevent duplicate processing
+  if (payment.status === 'Paid') {
+    return await Order.findById(payment.order).populate('user', 'name email');
+  }
+
+  // Update Payment Status
+  payment.status = 'Paid';
+  payment.razorpayPaymentId = razorpayPaymentId;
+  payment.signature = signature;
+  
+  // Generate Invoice Number
+  const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  payment.invoiceNumber = `INV-${dateStr}-${payment._id.toString().slice(-6).toUpperCase()}`;
+
+  // Create actual Order now that payment is verified
+  const order = new Order({
+    user: payment.user,
+    products: payment.checkoutData.orderItems,
+    shippingAddress: payment.checkoutData.shippingAddress,
+    paymentMethod: payment.paymentMethod,
+    totalPrice: payment.checkoutData.totalPrice,
+    paymentStatus: 'Paid',
+    orderStatus: 'Pending',
+    razorpayOrderId: payment.razorpayOrderId,
+    razorpayPaymentId: razorpayPaymentId,
+    paymentSignature: signature,
+    transactionDate: new Date(),
+    invoiceNumber: payment.invoiceNumber
+  });
+
+  const savedOrder = await order.save();
+  const populatedOrder = await Order.findById(savedOrder._id).populate('user', 'name email');
+  
+  payment.order = savedOrder._id;
+  await payment.save();
+
+  // Reduce Stock
+  for (const item of payment.checkoutData.orderItems) {
+    const product = await Product.findById(item.product);
+    if (product) {
+      product.stock = Math.max(0, product.stock - item.qty);
+      await product.save();
+    }
+  }
+
+  // Async tasks: Invoice, Email, Notifications
+  try {
+    const pdfBuffer = await generateInvoice(populatedOrder, populatedOrder.user);
+    await sendOrderConfirmationEmail(populatedOrder, populatedOrder.user, pdfBuffer);
+  } catch (err) {
+    console.error('Failed async tasks (Invoice/Email):', err);
+  }
+  
+  if (req) {
+    await dispatchAdminNotification(req, populatedOrder);
+  }
+
+  return populatedOrder;
 };
 
 const verifyPayment = async (req, res) => {
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId } = req.body;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
-    const sign = razorpay_order_id + '|' + razorpay_payment_id;
-    const expectedSign = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-      .update(sign.toString())
-      .digest('hex');
+    const payment = await Payment.findOne({ razorpayOrderId: razorpay_order_id }).populate('user');
+    if (!payment) {
+      return res.status(404).json({ message: 'Payment record not found' });
+    }
 
-    if (razorpay_signature !== expectedSign) {
-      // Signature mismatch
-      const order = await Order.findById(orderId);
-      if (order) {
-        order.paymentStatus = 'Failed';
-        await order.save();
-      }
+    const isValid = await razorpayService.verifyPaymentSignature(razorpay_order_id, razorpay_payment_id, razorpay_signature);
+
+    if (!isValid) {
+      payment.status = 'Failed';
+      await payment.save();
+      await PaymentLog.create({
+        paymentId: payment._id,
+        razorpayOrderId: razorpay_order_id,
+        event: 'Payment Failed',
+        payload: { error: 'Invalid Signature' }
+      });
       return res.status(400).json({ message: 'Invalid signature. Payment failed.' });
     }
 
-    // Payment is verified
-    const order = await Order.findById(orderId).populate('user', 'name email');
-    if (!order) {
-      return res.status(404).json({ message: 'Order not found' });
-    }
+    const order = await processSuccessfulPayment(req, payment, razorpay_payment_id, razorpay_signature);
 
-    order.paymentStatus = 'Paid';
-    order.razorpayPaymentId = razorpay_payment_id;
-    order.paymentSignature = razorpay_signature;
-    order.transactionDate = new Date();
-    
-    // Generate invoice number
-    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    order.invoiceNumber = `INV-${dateStr}-${order._id.toString().slice(-6).toUpperCase()}`;
+    await PaymentLog.create({
+      paymentId: payment._id,
+      razorpayOrderId: razorpay_order_id,
+      event: 'Payment Success',
+      payload: req.body
+    });
 
-    const updatedOrder = await order.save();
-
-    // Generate Invoice PDF and Send Email asynchronously
-    try {
-      const pdfBuffer = await generateInvoice(updatedOrder, order.user);
-      await sendOrderConfirmationEmail(updatedOrder, order.user, pdfBuffer);
-    } catch (emailErr) {
-      console.error('Failed to send email/generate invoice:', emailErr);
-      // We don't want to fail the checkout if email fails
-    }
-
-    // Dispatch WhatsApp & Socket notifications
-    await dispatchAdminNotification(req, updatedOrder);
-
-    res.status(200).json({ message: 'Payment verified successfully', order: updatedOrder });
+    res.status(200).json({ message: 'Payment verified successfully', order });
   } catch (error) {
     console.error('Error verifying payment:', error);
     res.status(500).json({ message: 'Server error during payment verification' });
@@ -174,51 +217,43 @@ const verifyPayment = async (req, res) => {
 
 const webhookHandler = async (req, res) => {
   try {
-    const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
-    const signature = req.headers['x-razorpay-signature'];
-
-    const expectedSignature = crypto
-      .createHmac('sha256', secret)
-      .update(JSON.stringify(req.body))
-      .digest('hex');
-
-    if (signature !== expectedSignature) {
-      return res.status(400).json({ message: 'Invalid signature' });
-    }
-
+    // Note: The signature is already verified by verifyWebhook middleware
+    // req.body is already parsed to JSON
     const { event, payload } = req.body;
     const paymentEntity = payload.payment.entity;
 
-    const order = await Order.findOne({ razorpayOrderId: paymentEntity.order_id }).populate('user', 'name email');
-    if (!order) {
-      return res.status(404).json({ message: 'Order not found' });
+    const payment = await Payment.findOne({ razorpayOrderId: paymentEntity.order_id }).populate('user');
+    if (!payment) {
+      return res.status(404).json({ message: 'Payment not found for webhook' });
     }
 
-    if (event === 'payment.captured') {
-      if (order.paymentStatus !== 'Paid') {
-        order.paymentStatus = 'Paid';
-        order.razorpayPaymentId = paymentEntity.id;
-        order.transactionDate = new Date();
-        const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-        order.invoiceNumber = `INV-${dateStr}-${order._id.toString().slice(-6).toUpperCase()}`;
-        await order.save();
+    await PaymentLog.create({
+      paymentId: payment._id,
+      razorpayOrderId: paymentEntity.order_id,
+      event: 'Webhook Received',
+      payload: req.body
+    });
 
-        try {
-          const pdfBuffer = await generateInvoice(order, order.user);
-          await sendOrderConfirmationEmail(order, order.user, pdfBuffer);
-        } catch (emailErr) {
-          console.error('Failed to send email/generate invoice from webhook:', emailErr);
-        }
-
-        // Dispatch WhatsApp & Socket notifications
-        await dispatchAdminNotification(req, order);
+    if (event === 'payment.captured' || event === 'payment.authorized') {
+      if (payment.status !== 'Paid') {
+         // Create a signature that passes verification to emulate what happens in frontend if we want,
+         // but since webhook is verified, we can bypass signature verification or use webhook body signature
+         // We'll just pass 'webhook-verified' as signature since we already authenticated the webhook payload.
+         await processSuccessfulPayment(req, payment, paymentEntity.id, 'webhook-verified');
       }
     } else if (event === 'payment.failed') {
-      order.paymentStatus = 'Failed';
-      await order.save();
+      payment.status = 'Failed';
+      await payment.save();
     } else if (event === 'refund.processed' || event === 'refund.created') {
-      order.paymentStatus = 'Refunded';
-      await order.save();
+      payment.status = 'Refunded';
+      if (payment.order) {
+        const order = await Order.findById(payment.order);
+        if (order) {
+          order.paymentStatus = 'Refunded';
+          await order.save();
+        }
+      }
+      await payment.save();
     }
 
     res.status(200).json({ status: 'ok' });
@@ -228,8 +263,82 @@ const webhookHandler = async (req, res) => {
   }
 };
 
+// Admin endpoints for Payment Management
+const getPayments = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || '';
+
+    const query = {};
+    if (search) {
+      query.$or = [
+        { razorpayOrderId: { $regex: search, $options: 'i' } },
+        { invoiceNumber: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const payments = await Payment.find(query)
+      .populate('user', 'name email')
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const total = await Payment.countDocuments(query);
+
+    res.status(200).json({
+      payments,
+      pages: Math.ceil(total / limit),
+      currentPage: page,
+      total
+    });
+  } catch (error) {
+    console.error('Failed to fetch payments:', error);
+    res.status(500).json({ message: 'Failed to fetch payments' });
+  }
+};
+
+const getPaymentStats = async (req, res) => {
+  try {
+    const totalPayments = await Payment.countDocuments({ status: 'Paid' });
+    const aggregate = await Payment.aggregate([
+      { $match: { status: 'Paid' } },
+      { $group: { _id: null, totalRevenue: { $sum: '$amount' } } }
+    ]);
+    const totalRevenue = aggregate.length > 0 ? aggregate[0].totalRevenue : 0;
+
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const todayAggregate = await Payment.aggregate([
+      { $match: { status: 'Paid', createdAt: { $gte: startOfToday } } },
+      { $group: { _id: null, todaysRevenue: { $sum: '$amount' } } }
+    ]);
+    const todaysRevenue = todayAggregate.length > 0 ? todayAggregate[0].todaysRevenue : 0;
+
+    const successfulPayments = await Payment.countDocuments({ status: 'Paid' });
+    const failedPayments = await Payment.countDocuments({ status: 'Failed' });
+    const pendingPayments = await Payment.countDocuments({ status: 'Pending' });
+    const refunds = await Payment.countDocuments({ status: 'Refunded' });
+
+    res.status(200).json({
+      totalRevenue,
+      todaysRevenue,
+      successfulPayments,
+      failedPayments,
+      pendingPayments,
+      refunds,
+      totalPayments
+    });
+  } catch (error) {
+    console.error('Failed to fetch payment stats:', error);
+    res.status(500).json({ message: 'Failed to fetch payment statistics' });
+  }
+};
+
 module.exports = {
   createOrder,
   verifyPayment,
-  webhookHandler
+  webhookHandler,
+  getPayments,
+  getPaymentStats
 };

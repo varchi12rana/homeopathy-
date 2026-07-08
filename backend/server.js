@@ -3,7 +3,12 @@ const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
 const dotenv = require('dotenv');
+
+dotenv.config({ path: path.resolve(__dirname, '.env') });
+
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/db');
 
 const authRoutes = require('./routes/authRoutes');
@@ -16,8 +21,6 @@ const userRoutes = require('./routes/userRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
-
-dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 connectDB();
 
@@ -39,7 +42,27 @@ io.on('connection', (socket) => {
   });
 });
 
+// Security Middlewares
+app.use(helmet({
+  crossOriginResourcePolicy: false, // allow serving images to frontend
+}));
 app.use(cors());
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  message: 'Too many requests from this IP, please try again after 15 minutes'
+});
+// Apply the rate limiting middleware to all requests (or could be specific to /api)
+app.use('/api', apiLimiter);
+
+// IMPORTANT: Webhook route must use express.raw BEFORE express.json
+// This ensures we can verify the HMAC SHA256 signature exactly
+app.use('/api/payment/webhook', express.raw({ type: 'application/json' }));
+
+// Standard body parsers for all other routes
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 

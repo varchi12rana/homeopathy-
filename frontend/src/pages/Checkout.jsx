@@ -26,8 +26,6 @@ const Checkout = () => {
   const [country, setCountry] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('Cash on Delivery');
-  const [prepaidMethod, setPrepaidMethod] = useState('Credit / Debit Card');
-  const [upiId, setUpiId] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -54,7 +52,7 @@ const Checkout = () => {
     }
 
     try {
-      const { data: { orderId, razorpayOrderId, amount, currency, keyId } } = await api.post('/payment/create-order', orderData);
+      const { data: { paymentId, razorpayOrderId, amount, currency, keyId } } = await api.post('/payment/create-order', orderData);
 
       const options = {
         key: keyId,
@@ -70,13 +68,16 @@ const Checkout = () => {
             const verifyData = {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              orderId: orderId
+              razorpay_signature: response.razorpay_signature
             };
-            await api.post('/payment/verify', verifyData);
+            const verifyRes = await api.post('/payment/verify', verifyData);
+            
+            // The order is created upon verification
+            const createdOrderId = verifyRes.data.order._id;
+            
             clearCart();
             setIsProcessing(false);
-            navigate(`/payment-success?orderId=${orderId}`);
+            navigate(`/payment-success?orderId=${createdOrderId}`);
           } catch (err) {
             console.error(err);
             setIsProcessing(false);
@@ -100,10 +101,18 @@ const Checkout = () => {
       };
 
       const paymentObject = new window.Razorpay(options);
+      
+      paymentObject.on('payment.failed', function (response) {
+        console.error('Razorpay payment failed:', response.error);
+        toast.error(`Payment failed: ${response.error.description}`);
+        setIsProcessing(false);
+      });
+
       paymentObject.open();
     } catch (err) {
       console.error(err);
-      toast.error('Failed to initiate payment');
+      const errorMessage = err.response?.data?.message || 'Failed to initiate payment';
+      toast.error(errorMessage);
       setIsProcessing(false);
     }
   };
@@ -115,7 +124,7 @@ const Checkout = () => {
 
     try {
       const finalPaymentMethod = paymentMethod === 'Prepaid' 
-        ? `Prepaid - ${prepaidMethod}${prepaidMethod === 'UPI' ? ` (${upiId})` : ''}` 
+        ? 'Prepaid (Razorpay)' 
         : 'Cash on Delivery';
 
       const orderData = {
@@ -237,51 +246,16 @@ const Checkout = () => {
                   checked={paymentMethod === 'Prepaid'}
                   onChange={(e) => setPaymentMethod(e.target.value)}
                 />
-                <span className="ml-2 text-gray-700 font-medium">Prepaid (Card / UPI / QR)</span>
+                <span className="ml-2 text-gray-700 font-medium">Pay Online (Cards / UPI / Netbanking)</span>
               </label>
             </div>
 
             {paymentMethod === 'Prepaid' && (
               <div className="ml-7 mt-3 p-4 bg-gray-50 border border-gray-200 rounded-md">
-                <div className="flex gap-6 mb-4">
-                  <label className="inline-flex items-center cursor-pointer">
-                    <input type="radio" className="form-radio text-teal-600 h-4 w-4" value="Credit / Debit Card" checked={prepaidMethod === 'Credit / Debit Card'} onChange={(e) => setPrepaidMethod(e.target.value)} />
-                    <span className="ml-2 text-sm text-gray-700">Card</span>
-                  </label>
-                  <label className="inline-flex items-center cursor-pointer">
-                    <input type="radio" className="form-radio text-teal-600 h-4 w-4" value="UPI" checked={prepaidMethod === 'UPI'} onChange={(e) => setPrepaidMethod(e.target.value)} />
-                    <span className="ml-2 text-sm text-gray-700">UPI</span>
-                  </label>
-                  <label className="inline-flex items-center cursor-pointer">
-                    <input type="radio" className="form-radio text-teal-600 h-4 w-4" value="QR Code" checked={prepaidMethod === 'QR Code'} onChange={(e) => setPrepaidMethod(e.target.value)} />
-                    <span className="ml-2 text-sm text-gray-700">QR Code</span>
-                  </label>
+                <div className="text-sm text-gray-500 italic flex items-center">
+                  <svg className="w-5 h-5 mr-2 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                  You will be securely redirected to the Razorpay payment gateway to complete your payment.
                 </div>
-                
-                {prepaidMethod === 'Credit / Debit Card' && (
-                  <div className="text-sm text-gray-500 italic p-3 bg-white border rounded">You will be securely redirected to the payment gateway after placing the order.</div>
-                )}
-
-                {prepaidMethod === 'UPI' && (
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1 font-semibold uppercase tracking-wider">Enter UPI ID</label>
-                    <input 
-                      type="text" 
-                      placeholder="e.g. yourname@okaxis" 
-                      value={upiId} 
-                      onChange={(e) => setUpiId(e.target.value)} 
-                      required={paymentMethod === 'Prepaid' && prepaidMethod === 'UPI'} 
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm" 
-                    />
-                  </div>
-                )}
-
-                {prepaidMethod === 'QR Code' && (
-                  <div className="flex flex-col items-center justify-center p-4 bg-white border rounded">
-                    <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=dummy@upi&pn=Vipul%20Rana&am=${finalPrice}`} alt="QR Code" className="w-32 h-32 mb-3 shadow-sm border p-2" />
-                    <p className="text-xs text-gray-600 text-center font-medium">Scan this QR code with PhonePe, GPay, or Paytm to pay <span className="font-bold text-teal-700">₹{finalPrice.toFixed(2)}</span></p>
-                  </div>
-                )}
               </div>
             )}
           </div>
