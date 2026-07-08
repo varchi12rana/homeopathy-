@@ -8,6 +8,7 @@ import { ShoppingCart, User as UserIcon, LogOut, Shield, Search, Heart, Leaf, Ch
 import { useState, useEffect } from 'react';
 import api from '../services/api';
 import AdminNotificationBell from './AdminNotificationBell';
+import { getImageUrl } from '../utils/imageHelper';
 
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
@@ -156,7 +157,7 @@ const Navbar = () => {
                     }}
                     className="flex items-center gap-3 p-3 hover:bg-emerald-50 cursor-pointer border-b border-gray-50 last:border-0 transition"
                   >
-                    <img src={product.image || 'https://via.placeholder.com/40'} alt={product.name} className="w-10 h-10 object-contain rounded bg-white" />
+                    <img src={getImageUrl(product.image)} alt={product.name} className="w-10 h-10 object-contain rounded bg-white" />
                     <div className="flex flex-col">
                       <span className="text-sm font-bold text-gray-800 line-clamp-1">{product.name}</span>
                       <span className="text-[10px] font-semibold text-emerald-600">{product.potency} {product.dilution}</span>

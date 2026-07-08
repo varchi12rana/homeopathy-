@@ -119,7 +119,7 @@ const BulkUpload = () => {
         disabled={isUploading || !file}
         className={`w-full py-2 px-4 rounded font-bold text-white transition-colors ${isUploading || !file ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
       >
-        {isUploading ? 'Uploading...' : 'Upload Products'}
+        {isUploading ? 'Uploading...' : 'Start Bulk Upload'}
       </button>
 
       {isUploading && (

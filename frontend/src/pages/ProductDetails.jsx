@@ -6,6 +6,7 @@ import { AuthContext } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import { ArrowLeft } from 'lucide-react';
 import SEO from '../components/SEO';
+import { getImageUrl } from '../utils/imageHelper';
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -48,7 +49,7 @@ const ProductDetails = () => {
     "@context": "https://schema.org/",
     "@type": "Product",
     "name": product.name,
-    "image": product.image || `${window.location.origin}/logo.png`,
+    "image": product.image ? getImageUrl(product.image) : `${window.location.origin}/logo.png`,
     "description": product.description,
     "brand": {
       "@type": "Brand",
@@ -69,7 +70,7 @@ const ProductDetails = () => {
       <SEO 
         title={`${product.name} | Homeopathic Medicine`} 
         description={product.description?.substring(0, 160) || `Buy ${product.name} online from Aura Homeopathy. High-quality homeopathic remedies for effective healing.`}
-        image={product.image}
+        image={getImageUrl(product.image)}
         type="product"
         structuredData={structuredData}
       />
@@ -80,7 +81,7 @@ const ProductDetails = () => {
       <div className="bg-white rounded-xl shadow-md overflow-hidden flex flex-col md:flex-row">
         <div className="md:w-1/2 p-8 bg-gray-50 flex justify-center items-center">
           <img 
-            src={product.image || 'https://via.placeholder.com/400?text=Medicine'} 
+            src={getImageUrl(product.image)} 
             alt={product.name} 
             className="max-h-96 object-contain"
           />

@@ -4,6 +4,7 @@ import { CartContext } from '../context/CartContext';
 import { WishlistContext } from '../context/WishlistContext';
 import { toast } from 'react-toastify';
 import { Heart, ShoppingBag } from 'lucide-react';
+import { getImageUrl } from '../utils/imageHelper';
 
 const ProductCard = ({ product }) => {
   const { addToCart } = useContext(CartContext);
@@ -62,7 +63,7 @@ const ProductCard = ({ product }) => {
 
       <div className="h-32 sm:h-56 overflow-hidden bg-slate-50 flex justify-center items-center p-3 sm:p-6 relative group-hover:bg-emerald-50/50 transition">
         <img 
-          src={product.image || 'https://via.placeholder.com/300?text=Medicine'} 
+          src={getImageUrl(product.image)} 
           alt={product.name} 
           className="object-contain h-full w-full group-hover:scale-110 transition duration-500"
         />

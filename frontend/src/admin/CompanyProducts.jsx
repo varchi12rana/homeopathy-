@@ -4,6 +4,7 @@ import api from '../services/api';
 import { AuthContext } from '../context/AuthContext';
 import { Edit, Trash2, ArrowLeft, Plus } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { getImageUrl } from '../utils/imageHelper';
 
 const CompanyProducts = () => {
   const { companyName } = useParams();
@@ -203,7 +204,7 @@ const CompanyProducts = () => {
                       />
                     </td>
                     <td className="px-6 py-4">
-                      <img src={product.image} alt={product.name} className="h-10 w-10 object-contain bg-white" />
+                      <img src={getImageUrl(product.image)} alt={product.name} className="h-10 w-10 object-contain bg-white" />
                     </td>
                     <td className="px-6 py-4 font-medium text-gray-900">{product.name}</td>
                     <td className="px-6 py-4 text-sm text-gray-500">{product.potency} {product.dilution} {product.motherTincture && '(MT)'}</td>

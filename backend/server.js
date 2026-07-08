@@ -15,6 +15,7 @@ const sitemapRoutes = require('./routes/sitemapRoutes');
 const userRoutes = require('./routes/userRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
 
 dotenv.config({ path: path.resolve(__dirname, '.env') });
 
@@ -51,6 +52,9 @@ app.use('/api/sitemap.xml', sitemapRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/upload', uploadRoutes);
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.get('/robots.txt', (req, res) => {
   const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
