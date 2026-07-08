@@ -40,6 +40,7 @@ import Orders from './admin/Orders';
 import AdminMessages from './admin/AdminMessages';
 import AdminUsers from './admin/AdminUsers';
 import AdminUserDetails from './admin/AdminUserDetails';
+import AdminCompanies from './admin/AdminCompanies';
 
 function App() {
   const { i18n } = useTranslation();
@@ -93,6 +94,7 @@ function App() {
               <Route path="/admin/messages" element={<div className="container mx-auto px-4 py-8"><AdminMessages /></div>} />
               <Route path="/admin/users" element={<div className="container mx-auto px-4 py-8"><AdminUsers /></div>} />
               <Route path="/admin/user/:id" element={<div className="container mx-auto px-4 py-8"><AdminUserDetails /></div>} />
+              <Route path="/admin/companies" element={<div className="container mx-auto px-4 py-8"><AdminCompanies /></div>} />
             </Routes>
           </main>
           <Footer />

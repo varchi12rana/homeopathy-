@@ -8,6 +8,7 @@ import SEO from '../components/SEO';
 
 const Home = () => {
   const [bestsellers, setBestsellers] = useState([]);
+  const [sliderCompanies, setSliderCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showContactOptions, setShowContactOptions] = useState(false);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
@@ -18,6 +19,16 @@ const Home = () => {
         const { data } = await api.get('/products?isBestSeller=true');
         const productsArray = data.products || data;
         setBestsellers(productsArray.slice(0, 8)); // Get up to 8 bestsellers
+        
+        // Fetch companies for slider
+        try {
+          const { data: allCompanies } = await api.get('/companies');
+          const visibleCompanies = allCompanies.filter(c => c.showOnSlider);
+          setSliderCompanies(visibleCompanies);
+        } catch (compErr) {
+          console.error('Failed to fetch companies', compErr);
+        }
+
         setLoading(false);
       } catch (error) {
         console.error('Failed to fetch products', error);
@@ -27,15 +38,7 @@ const Home = () => {
     fetchProducts();
   }, []);
 
-  const companies = [
-    { name: "Boiron", country: "France", tagline: "World Leader in Homeopathy" },
-    { name: "Dr. Willmar Schwabe", country: "Germany", tagline: "Nature's Healing Power" },
-    { name: "SBL", country: "India", tagline: "Excellence in Homeopathy" },
-    { name: "Bakson's", country: "India", tagline: "Quality & Trust" },
-    { name: "Wheezal", country: "India", tagline: "Cure with Care" },
-    { name: "Bjain", country: "India", tagline: "Purity & Efficacy" },
-  ];
-
+  // The slider companies are now fetched dynamically
   return (
     <div className="w-full bg-slate-50 text-slate-800">
       <SEO 
@@ -120,19 +123,23 @@ const Home = () => {
         </div>
         
         {/* Marquee Container */}
-        <div className="flex w-[200%] md:w-[150%] animate-scroll hover:[animation-play-state:paused]">
-          {/* Double the list for infinite effect */}
-          {[...companies, ...companies].map((company, idx) => (
-            <div key={idx} className="w-72 flex-shrink-0 mx-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 text-center hover:bg-white/20 transition cursor-pointer group">
-              <div className="w-16 h-16 mx-auto bg-white rounded-full flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition">
-                <span className="font-bold text-emerald-800 text-xl">{company.name[0]}</span>
+        {sliderCompanies.length > 0 ? (
+          <div className="flex w-[200%] md:w-[150%] animate-scroll hover:[animation-play-state:paused]">
+            {/* Double the list for infinite effect */}
+            {[...sliderCompanies, ...sliderCompanies].map((company, idx) => (
+              <div key={idx} className="w-72 flex-shrink-0 mx-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 text-center hover:bg-white/20 transition cursor-pointer group">
+                <div className="w-16 h-16 mx-auto bg-white rounded-full flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition">
+                  <span className="font-bold text-emerald-800 text-xl">{company.name[0]}</span>
+                </div>
+                <h3 className="text-xl font-bold text-white mb-1">{company.name}</h3>
+                <p className="text-emerald-300 text-sm mb-3">{company.country || 'India'}</p>
+                <span className="text-xs text-white/70 bg-black/20 px-3 py-1 rounded-full">{company.tagline || 'Excellence'}</span>
               </div>
-              <h3 className="text-xl font-bold text-white mb-1">{company.name}</h3>
-              <p className="text-emerald-300 text-sm mb-3">{company.country}</p>
-              <span className="text-xs text-white/70 bg-black/20 px-3 py-1 rounded-full">{company.tagline}</span>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center text-emerald-200 py-4 italic">No partners to display at the moment.</div>
+        )}
       </section>
 
       {/* 7. Best Selling Remedies */}

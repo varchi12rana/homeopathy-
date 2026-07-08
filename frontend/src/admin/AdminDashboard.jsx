@@ -1,7 +1,7 @@
 import { useEffect, useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { Package, ListOrdered, PlusCircle, MessageSquare, Users } from 'lucide-react';
+import { Package, ListOrdered, PlusCircle, MessageSquare, Users, Building2 } from 'lucide-react';
 import api from '../services/api';
 
 const AdminDashboard = () => {
@@ -75,6 +75,19 @@ const AdminDashboard = () => {
             className="w-full flex items-center justify-center gap-2 bg-teal-50 text-teal-700 font-medium py-3 px-4 rounded-md hover:bg-teal-100 transition"
           >
             View All Users
+          </Link>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-md p-6">
+          <div className="flex items-center gap-3 mb-6 border-b pb-4">
+            <Building2 className="text-teal-600" size={24} />
+            <h2 className="text-xl font-bold text-gray-800">Company Management</h2>
+          </div>
+          <Link 
+            to="/admin/companies" 
+            className="w-full flex items-center justify-center gap-2 bg-teal-50 text-teal-700 font-medium py-3 px-4 rounded-md hover:bg-teal-100 transition"
+          >
+            Manage Companies & Partners
           </Link>
         </div>
       </div>
