@@ -16,7 +16,8 @@ const Home = () => {
     const fetchProducts = async () => {
       try {
         const { data } = await api.get('/products?isBestSeller=true');
-        setBestsellers(data.slice(0, 8)); // Get up to 8 bestsellers
+        const productsArray = data.products || data;
+        setBestsellers(productsArray.slice(0, 8)); // Get up to 8 bestsellers
         setLoading(false);
       } catch (error) {
         console.error('Failed to fetch products', error);
