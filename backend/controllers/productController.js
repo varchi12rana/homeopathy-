@@ -66,6 +66,21 @@ const getProductById = async (req, res) => {
   }
 };
 
+const getProductVariants = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    // Find all products with the same name and company
+    const variants = await Product.find({ name: product.name, company: product.company });
+    res.json(variants);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 const getAlphabetPage = async (req, res) => {
   try {
     const letter = req.query.letter;
@@ -440,6 +455,7 @@ const deleteCategory = async (req, res) => {
 module.exports = {
   getProducts,
   getProductById,
+  getProductVariants,
   getAlphabetPage,
   getProductsByCompany,
   getUniqueCategories,

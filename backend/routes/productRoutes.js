@@ -12,6 +12,7 @@ const {
   deleteProductsBulk,
   deleteCategory,
   getAlphabetPage,
+  getProductVariants,
 } = require('../controllers/productController');
 const { protect } = require('../middleware/authMiddleware');
 const { admin } = require('../middleware/adminMiddleware');
@@ -23,6 +24,7 @@ router.route('/categories/:categoryName').delete(protect, admin, deleteCategory)
 router.route('/bulk').post(protect, admin, createProductsBulk);
 router.route('/bulk-delete').post(protect, admin, deleteProductsBulk);
 router.route('/company/:companyName').get(protect, admin, getProductsByCompany);
+router.route('/:id/variants').get(getProductVariants);
 router
   .route('/:id')
   .get(getProductById)

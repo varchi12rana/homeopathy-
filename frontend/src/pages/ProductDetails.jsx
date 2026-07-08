@@ -12,6 +12,7 @@ const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
+  const [variants, setVariants] = useState([]);
   const [qty, setQty] = useState(1);
   const [loading, setLoading] = useState(true);
   const { addToCart } = useContext(CartContext);
@@ -22,6 +23,14 @@ const ProductDetails = () => {
       try {
         const { data } = await api.get(`/products/${id}`);
         setProduct(data);
+        
+        try {
+          const { data: variantsData } = await api.get(`/products/${id}/variants`);
+          setVariants(variantsData);
+        } catch (err) {
+          console.error('Failed to fetch variants', err);
+        }
+
         setLoading(false);
       } catch (error) {
         toast.error('Product not found');
@@ -65,6 +74,42 @@ const ProductDetails = () => {
     }
   };
 
+  const sanitizeValue = (val) => (!val || val === 'false' || val === 'null' || val === 'undefined') ? '' : val.trim();
+  const currentPotency = product ? sanitizeValue(product.potency) : '';
+  const currentSize = product ? sanitizeValue(product.dilution) : '';
+
+  const availablePotencies = [...new Set([
+    currentPotency,
+    ...variants.map(v => sanitizeValue(v.potency))
+  ])].filter(Boolean).sort();
+
+  const availableSizes = [...new Set([
+    currentSize,
+    ...variants.map(v => sanitizeValue(v.dilution))
+  ])].filter(Boolean).sort();
+
+  const handlePotencyChange = (e) => {
+    const newPotency = e.target.value;
+    const targetVariant = variants.find(v => sanitizeValue(v.potency) === newPotency && sanitizeValue(v.dilution) === currentSize) 
+      || variants.find(v => sanitizeValue(v.potency) === newPotency);
+    
+    if (targetVariant && targetVariant._id !== id) {
+      navigate(`/product/${targetVariant._id}`);
+      setQty(1); // Reset qty when switching variants
+    }
+  };
+
+  const handleSizeChange = (e) => {
+    const newSize = e.target.value;
+    const targetVariant = variants.find(v => sanitizeValue(v.potency) === currentPotency && sanitizeValue(v.dilution) === newSize) 
+      || variants.find(v => sanitizeValue(v.dilution) === newSize);
+    
+    if (targetVariant && targetVariant._id !== id) {
+      navigate(`/product/${targetVariant._id}`);
+      setQty(1);
+    }
+  };
+
   return (
     <div className="container mx-auto max-w-5xl">
       <SEO 
@@ -102,18 +147,58 @@ const ProductDetails = () => {
           </h1>
           <p className="text-2xl font-bold text-teal-600 mb-6">₹{product.price}</p>
           
-          {((product.potency && product.potency !== 'false' && product.potency !== 'null') || 
-            (product.dilution && product.dilution !== 'false' && product.dilution !== 'null') || 
-            user?.role === 'admin') && (
+          {((availablePotencies.length > 0) || (availableSizes.length > 0) || user?.role === 'admin') && (
             <div className="mb-6 bg-gray-50 p-4 rounded-lg">
-              <h3 className="font-semibold text-gray-700 mb-2">Details</h3>
-              <ul className="text-sm text-gray-600 space-y-2">
-                {product.potency && product.potency !== 'false' && product.potency !== 'null' && <li><span className="font-medium">Potency:</span> {product.potency}</li>}
-                {product.dilution && product.dilution !== 'false' && product.dilution !== 'null' && <li><span className="font-medium">Dilution / Size:</span> {product.dilution}</li>}
-                {user?.role === 'admin' && (
-                  <li><span className="font-medium">Status:</span> {product.stock > 0 ? <span className="text-green-600">In Stock ({product.stock})</span> : <span className="text-red-600">Out of Stock</span>}</li>
+              <h3 className="font-semibold text-gray-700 mb-3">Details</h3>
+              
+              <div className="space-y-3">
+                {availablePotencies.length > 0 && (
+                  <div className="flex items-center gap-3">
+                    <span className="font-medium text-sm text-gray-600 w-28">Potency:</span>
+                    {availablePotencies.length > 1 ? (
+                      <select 
+                        value={currentPotency} 
+                        onChange={handlePotencyChange}
+                        className="border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:border-teal-500 w-32"
+                      >
+                        {availablePotencies.map(pot => (
+                          <option key={pot} value={pot}>{pot}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className="text-sm font-medium text-teal-700 bg-teal-50 px-2 py-1 rounded border border-teal-100">{currentPotency}</span>
+                    )}
+                  </div>
                 )}
-              </ul>
+                
+                {availableSizes.length > 0 && (
+                  <div className="flex items-center gap-3">
+                    <span className="font-medium text-sm text-gray-600 w-28">Dilution / Size:</span>
+                    {availableSizes.length > 1 ? (
+                      <select 
+                        value={currentSize} 
+                        onChange={handleSizeChange}
+                        className="border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:border-teal-500 w-32"
+                      >
+                        {availableSizes.map(size => (
+                          <option key={size} value={size}>{size}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className="text-sm font-medium text-teal-700 bg-teal-50 px-2 py-1 rounded border border-teal-100">{currentSize}</span>
+                    )}
+                  </div>
+                )}
+
+                {user?.role === 'admin' && (
+                  <div className="flex items-center gap-3">
+                    <span className="font-medium text-sm text-gray-600 w-28">Status:</span>
+                    <span className="text-sm">
+                      {product.stock > 0 ? <span className="text-green-600">In Stock ({product.stock})</span> : <span className="text-red-600">Out of Stock</span>}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
           )}
           
