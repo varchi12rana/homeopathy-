@@ -276,8 +276,6 @@ const Navbar = () => {
             </div>
             <Link to="/contact-us" className="hover:text-emerald-600 transition px-1 py-1">{t('Contact Us')}</Link>
             <Link to="/about-homeopathy" className="hover:text-emerald-600 transition px-1 py-1 whitespace-nowrap">{t('About Homeopathy')}</Link>
-            <Link to="/terms-and-conditions" className="hover:text-emerald-600 transition px-1 py-1 whitespace-nowrap">{t('Terms & Conditions')}</Link>
-            <Link to="/privacy-policy" className="hover:text-emerald-600 transition px-1 py-1 whitespace-nowrap">{t('Privacy Policy')}</Link>
           </div>
         </div>
       </nav>

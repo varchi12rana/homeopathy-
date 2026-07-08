@@ -49,6 +49,8 @@ const Footer = () => {
               <li><Link to="/track-order" className="hover:text-white transition">Track Order</Link></li>
               <li><Link to="/shipping-policy" className="hover:text-white transition">Shipping Policy</Link></li>
               <li><Link to="/faqs" className="hover:text-white transition">FAQs</Link></li>
+              <li><Link to="/terms-and-conditions" className="hover:text-white transition">Terms & Conditions</Link></li>
+              <li><Link to="/privacy-policy" className="hover:text-white transition">Privacy Policy</Link></li>
             </ul>
           </div>
 
@@ -89,8 +91,6 @@ const Footer = () => {
           </p>
           <div className="flex gap-6 text-sm text-emerald-400">
             <Link to="/contact-us" className="hover:text-emerald-50 transition">Contact Us</Link>
-            <Link to="/terms-and-conditions" className="hover:text-emerald-50 transition">Terms & Conditions</Link>
-            <Link to="/privacy-policy" className="hover:text-emerald-50 transition">Privacy Policy</Link>
           </div>
         </div>
       </div>
