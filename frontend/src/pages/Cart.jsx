@@ -5,7 +5,7 @@ import { AuthContext } from '../context/AuthContext';
 import { Trash2 } from 'lucide-react';
 
 const Cart = () => {
-  const { cartItems, addToCart, removeFromCart } = useContext(CartContext);
+  const { cartItems, addToCart, removeFromCart, settings } = useContext(CartContext);
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -89,14 +89,14 @@ const Cart = () => {
               <div className="flex justify-between mb-4 border-b pb-4">
                 <span className="text-gray-600">Shipping</span>
                 <span className="font-medium text-gray-800">
-                  {cartItems.reduce((acc, item) => acc + item.qty * item.price, 0) < 500 ? '₹100.00' : <span className="text-green-600">Free</span>}
+                  {cartItems.reduce((acc, item) => acc + item.qty * item.price, 0) < settings.freeShippingThreshold ? `₹${settings.shippingCharge.toFixed(2)}` : <span className="text-green-600">Free</span>}
                 </span>
               </div>
               
               <div className="flex justify-between mb-6">
                 <span className="text-lg font-bold text-gray-800">Total</span>
                 <span className="text-lg font-bold text-teal-600">
-                  ₹{(cartItems.reduce((acc, item) => acc + item.qty * item.price, 0) + (cartItems.reduce((acc, item) => acc + item.qty * item.price, 0) < 500 ? 100 : 0)).toFixed(2)}
+                  ₹{(cartItems.reduce((acc, item) => acc + item.qty * item.price, 0) + (cartItems.reduce((acc, item) => acc + item.qty * item.price, 0) < settings.freeShippingThreshold ? settings.shippingCharge : 0)).toFixed(2)}
                 </span>
               </div>
               

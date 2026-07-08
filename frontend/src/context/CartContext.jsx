@@ -6,7 +6,28 @@ export const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
+  const [settings, setSettings] = useState({ 
+    freeShippingThreshold: 500, 
+    shippingCharge: 100,
+    codCharge: 50,
+    isPrepaidEnabled: true
+  });
   const { user } = useContext(AuthContext);
+
+  // Fetch settings on mount
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const { data } = await api.get('/settings');
+        if (data) {
+          setSettings(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch settings', error);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   // Fetch cart on login
   useEffect(() => {
@@ -73,7 +94,7 @@ export const CartProvider = ({ children }) => {
   };
 
   return (
-    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, clearCart }}>
+    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, clearCart, settings, setSettings }}>
       {children}
     </CartContext.Provider>
   );

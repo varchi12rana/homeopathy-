@@ -16,7 +16,7 @@ const loadScript = (src) => {
 };
 
 const Checkout = () => {
-  const { cartItems, clearCart } = useContext(CartContext);
+  const { cartItems, clearCart, settings } = useContext(CartContext);
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -39,8 +39,8 @@ const Checkout = () => {
   }, [user, navigate, cartItems]);
 
   const itemsPrice = cartItems.reduce((acc, item) => acc + item.qty * item.price, 0);
-  const shippingPrice = itemsPrice < 500 ? 100 : 0;
-  const codCharge = paymentMethod === 'Cash on Delivery' ? 50 : 0;
+  const shippingPrice = itemsPrice < (settings?.freeShippingThreshold || 500) ? (settings?.shippingCharge || 100) : 0;
+  const codCharge = paymentMethod === 'Cash on Delivery' ? (settings?.codCharge ?? 50) : 0;
   const finalPrice = itemsPrice + shippingPrice + codCharge;
 
   const handleRazorpayPayment = async (orderData) => {
@@ -236,19 +236,21 @@ const Checkout = () => {
                 <span className="ml-2 text-gray-700 font-medium">Cash on Delivery</span>
               </label>
             </div>
-            <div className="mb-2">
-              <label className="inline-flex items-center cursor-pointer">
-                <input 
-                  type="radio" 
-                  className="form-radio text-teal-600 h-5 w-5" 
-                  name="paymentMethod" 
-                  value="Prepaid"
-                  checked={paymentMethod === 'Prepaid'}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                />
-                <span className="ml-2 text-gray-700 font-medium">Pay Online (Cards / UPI / Netbanking)</span>
-              </label>
-            </div>
+            {settings?.isPrepaidEnabled !== false && (
+              <div className="mb-2">
+                <label className="inline-flex items-center cursor-pointer">
+                  <input 
+                    type="radio" 
+                    className="form-radio text-teal-600 h-5 w-5" 
+                    name="paymentMethod" 
+                    value="Prepaid"
+                    checked={paymentMethod === 'Prepaid'}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                  />
+                  <span className="ml-2 text-gray-700 font-medium">Pay Online (Cards / UPI / Netbanking)</span>
+                </label>
+              </div>
+            )}
 
             {paymentMethod === 'Prepaid' && (
               <div className="ml-7 mt-3 p-4 bg-gray-50 border border-gray-200 rounded-md">
