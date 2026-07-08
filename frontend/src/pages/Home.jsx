@@ -5,6 +5,16 @@ import ProductCard from '../components/ProductCard';
 import FAQs from './FAQs';
 import { ShieldCheck, Truck, Users, CreditCard, Leaf, ArrowRight, HeartPulse, Sparkles, Smile, Star, Phone } from 'lucide-react';
 import SEO from '../components/SEO';
+import { motion } from 'framer-motion';
+
+const sectionVariants = {
+  hidden: { opacity: 0, x: -50 },
+  visible: { 
+    opacity: 1, 
+    x: 0, 
+    transition: { duration: 0.6, ease: "easeOut" } 
+  }
+};
 
 const Home = () => {
   const [bestsellers, setBestsellers] = useState([]);
@@ -47,7 +57,13 @@ const Home = () => {
       />
       
       {/* 3. Hero Section (Video Background) */}
-      <section className="relative min-h-[90vh] flex items-center overflow-hidden">
+      <motion.section 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+        variants={sectionVariants}
+        className="relative min-h-[90vh] flex items-center overflow-hidden"
+      >
         <video 
           autoPlay 
           loop 
@@ -84,10 +100,16 @@ const Home = () => {
 
 
         </div>
-      </section>
+      </motion.section>
 
       {/* 4. Trust Feature Icons Row */}
-      <section className="bg-white border-y border-emerald-50 relative z-20 -mt-10 mx-4 sm:mx-8 rounded-2xl shadow-xl">
+      <motion.section 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+        variants={sectionVariants}
+        className="bg-white border-y border-emerald-50 relative z-20 -mt-10 mx-4 sm:mx-8 rounded-2xl shadow-xl"
+      >
         <div className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 text-center">
             <div className="flex flex-col items-center gap-3">
@@ -112,11 +134,17 @@ const Home = () => {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
 
       {/* 6. Top Homeopathic Companies (Horizontal Scroll) */}
-      <section className="py-16 bg-emerald-900 overflow-hidden relative">
+      <motion.section 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={sectionVariants}
+        className="py-16 bg-emerald-900 overflow-hidden relative"
+      >
         <div className="container mx-auto px-4 mb-10 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">Our Trusted Partners</h2>
           <p className="text-emerald-200">We source only from the world's most reputed homeopathic pharmacies.</p>
@@ -140,10 +168,16 @@ const Home = () => {
         ) : (
           <div className="text-center text-emerald-200 py-4 italic">No partners to display at the moment.</div>
         )}
-      </section>
+      </motion.section>
 
       {/* 7. Best Selling Remedies */}
-      <section className="py-20 container mx-auto px-4">
+      <motion.section 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+        variants={sectionVariants}
+        className="py-20 container mx-auto px-4"
+      >
         <div className="flex justify-between items-end mb-10">
           <div>
             <h2 className="text-3xl font-bold text-emerald-900 mb-4">Best Selling Remedies</h2>
@@ -167,10 +201,16 @@ const Home = () => {
             ))}
           </div>
         )}
-      </section>
+      </motion.section>
 
       {/* 8. Consultation Section */}
-      <section className="py-20 container mx-auto px-4">
+      <motion.section 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={sectionVariants}
+        className="py-20 container mx-auto px-4"
+      >
         <div className="bg-emerald-50 rounded-3xl overflow-hidden shadow-lg flex flex-col md:flex-row items-center border border-emerald-100">
           <div className="p-10 md:p-16 flex-1">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white text-emerald-800 text-sm font-medium mb-6 shadow-sm">
@@ -204,10 +244,16 @@ const Home = () => {
             <img src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=1000&auto=format&fit=crop" alt="Doctor Consultation" className="absolute inset-0 w-full h-full object-cover object-center md:rounded-l-[100px]" />
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* 9. Statistics Section */}
-      <section className="py-16 bg-emerald-800 text-white">
+      <motion.section 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+        variants={sectionVariants}
+        className="py-16 bg-emerald-800 text-white"
+      >
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center divide-y md:divide-y-0 md:divide-x divide-emerald-600">
             <div className="py-4">
@@ -224,15 +270,27 @@ const Home = () => {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* 10. FAQs Section */}
-      <section className="py-12 bg-white">
+      <motion.section 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={sectionVariants}
+        className="py-12 bg-white"
+      >
         <FAQs />
-      </section>
+      </motion.section>
 
       {/* 11. Testimonials Section */}
-      <section className="py-24 bg-slate-50">
+      <motion.section 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+        variants={sectionVariants}
+        className="py-24 bg-slate-50"
+      >
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-emerald-900 mb-4">Healing Stories</h2>
@@ -263,7 +321,7 @@ const Home = () => {
             ))}
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* 12. How Homeopathy Works Modal */}
       {showHowItWorks && (
