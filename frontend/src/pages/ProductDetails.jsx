@@ -145,7 +145,21 @@ const ProductDetails = () => {
             {product.potency && product.potency !== 'false' && product.potency !== 'null' && <span className="font-semibold text-teal-700 ml-2 text-2xl">{product.potency}</span>} 
             {product.dilution && product.dilution !== 'false' && product.dilution !== 'null' && <span className="font-semibold text-teal-700 text-2xl ml-2">{product.dilution}</span>}
           </h1>
-          <p className="text-2xl font-bold text-teal-600 mb-6">₹{product.price}</p>
+          <div className="mb-6 flex flex-col">
+            {(() => {
+              const discountPercent = product.mrp ? Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
+              return product.mrp > product.price && discountPercent > 0 ? (
+                <>
+                  <span className="text-3xl font-black text-black">₹{product.price.toFixed(2)}</span>
+                  <span className="text-lg text-gray-500 mt-1">
+                    M.R.P: <span className="line-through">₹{product.mrp.toFixed(2)}</span> ({discountPercent}% off)
+                  </span>
+                </>
+              ) : (
+                <span className="text-3xl font-black text-black">₹{product.price.toFixed(2)}</span>
+              );
+            })()}
+          </div>
           
           {((availablePotencies.length > 0) || (availableSizes.length > 0) || user?.role === 'admin') && (
             <div className="mb-6 bg-gray-50 p-4 rounded-lg">

@@ -91,7 +91,21 @@ const ProductCard = ({ product }) => {
         ))}
         
         <div className="mt-auto pt-2 sm:pt-4 flex flex-col gap-1.5 sm:gap-2 border-t border-slate-100">
-          <span className="text-sm sm:text-xl font-black text-emerald-800">₹{product.price}</span>
+          <div className="flex flex-col leading-tight">
+            {(() => {
+              const discountPercent = product.mrp ? Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
+              return product.mrp > product.price && discountPercent > 0 ? (
+                <>
+                  <span className="text-sm sm:text-xl font-black text-black">₹{product.price.toFixed(2)}</span>
+                  <span className="text-[10px] sm:text-xs text-gray-500 mt-0.5">
+                    M.R.P: <span className="line-through">₹{product.mrp.toFixed(2)}</span> ({discountPercent}% off)
+                  </span>
+                </>
+              ) : (
+                <span className="text-sm sm:text-xl font-black text-black">₹{product.price.toFixed(2)}</span>
+              );
+            })()}
+          </div>
           <div className="flex gap-1.5 sm:gap-2 flex-col lg:flex-row">
             <button 
               onClick={handleAddToCart}

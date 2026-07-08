@@ -19,6 +19,11 @@ const productSchema = mongoose.Schema(
       required: true,
       default: 0,
     },
+    mrp: {
+      type: Number,
+      required: false,
+      default: 0,
+    },
     potency: {
       type: String,
       required: false,

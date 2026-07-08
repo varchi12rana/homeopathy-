@@ -244,7 +244,9 @@ const createProductsBulk = async (req, res) => {
         if (normalizedKey.includes('name') || normalizedKey.includes('title') || normalizedKey === 'product') p.name = val;
         else if (normalizedKey.includes('short desc') || normalizedKey.includes('main point') || normalizedKey.includes('uses') || normalizedKey.includes('use for')) p.shortDescription = val;
         else if (normalizedKey.includes('desc') || normalizedKey.includes('detail')) p.description = val;
-        else if (normalizedKey.includes('price') || normalizedKey.includes('mrp') || normalizedKey.includes('cost') || normalizedKey.includes('rate') || normalizedKey.includes('amount') || normalizedKey.includes('rs')) p.price = val;
+        else if (normalizedKey.includes('mrp') || normalizedKey.includes('m.r.p') || normalizedKey.includes('max retail')) p.mrp = val;
+        else if (normalizedKey.includes('discount') || normalizedKey.includes('off') || normalizedKey.includes('disc')) p.discount = val;
+        else if (normalizedKey.includes('price') || normalizedKey.includes('cost') || normalizedKey.includes('rate') || normalizedKey.includes('amount') || normalizedKey.includes('rs')) p.price = val;
         else if (normalizedKey.includes('potency')) p.potency = val;
         else if (normalizedKey.includes('dilution') || normalizedKey.includes('ml') || normalizedKey.includes('size') || normalizedKey.includes('vol')) p.dilution = val;
         else if (normalizedKey.includes('mother') && normalizedKey.includes('tincture')) {
@@ -280,12 +282,52 @@ const createProductsBulk = async (req, res) => {
         p.description = 'No description available.';
       }
 
-      // Clean and parse price (remove ₹, $, etc.)
+      // Clean and parse price, mrp, and discount (remove ₹, $, etc.)
       if (p.price !== undefined && p.price !== null) {
         const cleanedPrice = String(p.price).replace(/[^0-9.]/g, '');
         p.price = cleanedPrice ? Number(cleanedPrice) : 0;
       } else {
         p.price = 0;
+      }
+
+      if (p.mrp !== undefined && p.mrp !== null) {
+        const cleanedMrp = String(p.mrp).replace(/[^0-9.]/g, '');
+        p.mrp = cleanedMrp ? Number(cleanedMrp) : 0;
+      } else {
+        p.mrp = 0;
+      }
+
+      if (p.discount !== undefined && p.discount !== null) {
+        const cleanedDiscount = String(p.discount).replace(/[^0-9.]/g, '');
+        p.discount = cleanedDiscount ? Number(cleanedDiscount) : 0;
+      } else {
+        p.discount = 0;
+      }
+
+      // Derive values based on provided discount percentage
+      if (p.discount > 0) {
+        if (p.mrp > 0) {
+          // If MRP and discount are provided, ALWAYS calculate the final price
+          p.price = p.mrp - (p.mrp * (p.discount / 100));
+          p.price = Math.round(p.price * 100) / 100;
+        } else if (p.price > 0) {
+          // If they provided Price and Discount (but no MRP), treat the provided Price as the original MRP!
+          p.mrp = p.price;
+          p.price = p.mrp - (p.mrp * (p.discount / 100));
+          p.price = Math.round(p.price * 100) / 100;
+        }
+      }
+
+      // Ensure price is valid and MRP is correct
+      if (p.price < 0) p.price = 0;
+      
+      // We only show discount if MRP is strictly greater than Price.
+      // If the difference is negligible (e.g. less than 1 rupee), we can just set mrp = price
+      // to avoid showing "0% off".
+      if (p.mrp > 0) {
+        if (p.mrp <= p.price || (p.mrp - p.price) < 1) {
+          p.mrp = p.price; // invalid MRP or too small difference, reset to equal price
+        }
       }
       
       // Clean and parse stock
