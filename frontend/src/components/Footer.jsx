@@ -90,7 +90,11 @@ const Footer = () => {
           <p className="text-sm text-emerald-400 text-center md:text-left">
             &copy; {new Date().getFullYear()} HOMEOVIA. All rights reserved.
           </p>
-          <div className="flex gap-6 text-sm text-emerald-400">
+          <div className="flex flex-wrap justify-center md:justify-end gap-4 md:gap-6 text-sm text-emerald-400">
+            <Link to="/shipping-policy" className="hover:text-emerald-50 transition">Shipping Policy</Link>
+            <Link to="/refund-and-cancellation" className="hover:text-emerald-50 transition">Refund & Cancellation</Link>
+            <Link to="/terms-and-conditions" className="hover:text-emerald-50 transition">Terms & Conditions</Link>
+            <Link to="/privacy-policy" className="hover:text-emerald-50 transition">Privacy Policy</Link>
             <Link to="/contact-us" className="hover:text-emerald-50 transition">Contact Us</Link>
           </div>
         </div>
