@@ -53,6 +53,20 @@ const Navbar = () => {
     }
   };
 
+  const getCategoryLink = (cat) => {
+    const params = new URLSearchParams(location.search);
+    params.set('category', cat);
+    params.delete('keyword');
+    return `/products?${params.toString()}`;
+  };
+
+  const getCompanyLink = (comp) => {
+    const params = new URLSearchParams(location.search);
+    params.set('company', comp);
+    params.delete('keyword');
+    return `/products?${params.toString()}`;
+  };
+
   const toggleDropdown = (name) => {
     setActiveDropdown(activeDropdown === name ? null : name);
   };
@@ -243,7 +257,7 @@ const Navbar = () => {
                 {categories.length > 0 ? categories.map(cat => (
                   <Link
                     key={cat}
-                    to={`/products?category=${encodeURIComponent(cat)}`}
+                    to={getCategoryLink(cat)}
                     className="px-4 py-2 hover:bg-emerald-50 text-gray-700 hover:text-emerald-700 transition font-medium border-b border-gray-50 last:border-0 capitalize"
                     onClick={() => setActiveDropdown(null)}
                   >
@@ -265,7 +279,7 @@ const Navbar = () => {
                 {companies.map(comp => (
                   <Link
                     key={comp._id}
-                    to={`/products?company=${encodeURIComponent(comp.name)}`}
+                    to={getCompanyLink(comp.name)}
                     onClick={() => setActiveDropdown(null)}
                     className="px-3 py-2 md:px-4 md:py-2.5 text-[11px] md:text-sm font-medium text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 transition border-b border-gray-50 last:border-0 leading-tight"
                   >

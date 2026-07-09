@@ -41,9 +41,11 @@ const Products = () => {
         let url = `/products?page=${page}&sortOption=${sortOption}`;
         if (keyword) {
           url += `&keyword=${encodeURIComponent(keyword)}`;
-        } else if (category) {
+        }
+        if (category) {
           url += `&category=${encodeURIComponent(category)}`;
-        } else if (company) {
+        }
+        if (company) {
           url += `&company=${encodeURIComponent(company)}`;
         }
         
