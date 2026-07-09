@@ -16,7 +16,7 @@ const ShippingPolicy = () => {
         <section>
           <h2 className="text-xl font-semibold text-emerald-800 mb-3">Delivery Time</h2>
           <ul className="list-disc list-inside text-gray-700 space-y-2">
-            <li><strong>India:</strong> 4-6 business days</li>
+            <li><strong>India:</strong> 7-15 business days</li>
             <li><strong>International:</strong> 15-21 business days.</li>
           </ul>
         </section>
