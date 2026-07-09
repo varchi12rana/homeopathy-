@@ -163,6 +163,19 @@ const AdminDashboard = () => {
             Manage Shipping Charges
           </Link>
         </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="bg-white rounded-xl shadow-md p-6">
+          <div className="flex items-center gap-3 mb-6 border-b pb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-tags text-teal-600"><path d="M9 5H2v7l6.29 6.29c.94.94 2.48.94 3.42 0l3.58-3.58c.94-.94.94-2.48 0-3.42L9 5Z"/><path d="M6 9.01V9"/><path d="m15 5 6.3 6.3a2.4 2.4 0 0 1 0 3.4L17 19"/></svg>
+            <h2 className="text-xl font-bold text-gray-800">Category Management</h2>
+          </div>
+          <Link 
+            to="/admin/categories" 
+            className="w-full flex items-center justify-center gap-2 bg-teal-50 text-teal-700 font-medium py-3 px-4 rounded-md hover:bg-teal-100 transition"
+          >
+            Manage Categories
+          </Link>
+        </div>
       </div>
     </div>
   );

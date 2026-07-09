@@ -44,6 +44,7 @@ import AdminUserDetails from './admin/AdminUserDetails';
 import AdminCompanies from './admin/AdminCompanies';
 import AdminPayments from './admin/AdminPayments';
 import AdminSettings from './admin/AdminSettings';
+import AdminCategories from './admin/AdminCategories';
 
 function App() {
   const { i18n } = useTranslation();
@@ -101,6 +102,7 @@ function App() {
               <Route path="/admin/companies" element={<div className="container mx-auto px-4 py-8"><AdminCompanies /></div>} />
               <Route path="/admin/payments" element={<div className="container mx-auto px-4 py-8"><AdminPayments /></div>} />
               <Route path="/admin/settings" element={<div className="container mx-auto px-4 py-8"><AdminSettings /></div>} />
+              <Route path="/admin/categories" element={<div className="container mx-auto px-4 py-8"><AdminCategories /></div>} />
             </Routes>
           </main>
           <Footer />

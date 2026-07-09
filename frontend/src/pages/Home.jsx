@@ -19,6 +19,7 @@ const sectionVariants = {
 const Home = () => {
   const [bestsellers, setBestsellers] = useState([]);
   const [sliderCompanies, setSliderCompanies] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showContactOptions, setShowContactOptions] = useState(false);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
@@ -37,6 +38,14 @@ const Home = () => {
           setSliderCompanies(visibleCompanies);
         } catch (compErr) {
           console.error('Failed to fetch companies', compErr);
+        }
+
+        // Fetch categories
+        try {
+          const { data: allCategories } = await api.get('/products/categories/unique');
+          setCategories(allCategories);
+        } catch (catErr) {
+          console.error('Failed to fetch categories', catErr);
         }
 
         setLoading(false);
@@ -136,6 +145,44 @@ const Home = () => {
         </div>
       </motion.section>
 
+
+      {/* 5. Categories Section (Scrollable) */}
+      <motion.section 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={sectionVariants}
+        className="py-12 bg-white"
+      >
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-end mb-8">
+            <div>
+              <h2 className="text-3xl font-bold text-emerald-900 mb-2">Shop by Health Concern</h2>
+              <p className="text-slate-600">Find the right remedy for your specific needs.</p>
+            </div>
+          </div>
+          
+          <div className="relative">
+            <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 scrollbar-hide" style={{ scrollbarWidth: 'thin' }}>
+              {categories.map((category, idx) => (
+                <Link
+                  key={idx}
+                  to={`/products?category=${encodeURIComponent(category)}`}
+                  className="snap-start shrink-0 w-[80%] sm:w-[45%] md:w-[calc(33.333%-1rem)] lg:w-[calc(20%-1rem)] bg-emerald-50 border border-emerald-100 rounded-xl p-6 text-center hover:bg-emerald-600 hover:text-white transition group flex flex-col items-center justify-center min-h-[140px] shadow-sm hover:shadow-md"
+                >
+                  <div className="w-12 h-12 rounded-full bg-white text-emerald-600 group-hover:text-emerald-600 group-hover:scale-110 transition flex items-center justify-center mb-4 shadow-sm">
+                    <Leaf size={24} />
+                  </div>
+                  <h3 className="font-bold text-lg text-emerald-900 group-hover:text-white line-clamp-2">{category}</h3>
+                </Link>
+              ))}
+              {categories.length === 0 && !loading && (
+                <div className="text-slate-500 w-full text-center py-8">No categories available.</div>
+              )}
+            </div>
+          </div>
+        </div>
+      </motion.section>
 
       {/* 6. Top Homeopathic Companies (Horizontal Scroll) */}
       <motion.section 
