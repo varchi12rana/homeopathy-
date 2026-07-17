@@ -48,7 +48,6 @@ const Footer = () => {
               <li><Link to="/consult-doctor" className="hover:text-white transition">Consult a Doctor</Link></li>
               <li><Link to="/track-order" className="hover:text-white transition">Track Order</Link></li>
               <li><Link to="/shipping-policy" className="hover:text-white transition">Shipping Policy</Link></li>
-              <li><Link to="/refund-and-cancellation" className="hover:text-white transition">Return & Refund Policy</Link></li>
               <li><Link to="/faqs" className="hover:text-white transition">FAQs</Link></li>
               <li><Link to="/terms-and-conditions" className="hover:text-white transition">Terms & Conditions</Link></li>
               <li><Link to="/privacy-policy" className="hover:text-white transition">Privacy Policy</Link></li>
@@ -92,7 +91,6 @@ const Footer = () => {
           </p>
           <div className="flex flex-wrap justify-center md:justify-end gap-4 md:gap-6 text-sm text-emerald-400">
             <Link to="/shipping-policy" className="hover:text-emerald-50 transition">Shipping Policy</Link>
-            <Link to="/refund-and-cancellation" className="hover:text-emerald-50 transition">Return & Refund Policy</Link>
             <Link to="/terms-and-conditions" className="hover:text-emerald-50 transition">Terms & Conditions</Link>
             <Link to="/privacy-policy" className="hover:text-emerald-50 transition">Privacy Policy</Link>
             <Link to="/contact-us" className="hover:text-emerald-50 transition">Contact Us</Link>

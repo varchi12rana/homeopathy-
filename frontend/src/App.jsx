@@ -29,7 +29,6 @@ import TermsAndConditions from './pages/TermsAndConditions';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentFailed from './pages/PaymentFailed';
-import RefundAndCancellation from './pages/RefundAndCancellation';
 
 // Admin
 import AdminDashboard from './admin/AdminDashboard';
@@ -85,7 +84,6 @@ function App() {
               <Route path="/contact-us" element={<ContactUs />} />
               <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-              <Route path="/refund-and-cancellation" element={<RefundAndCancellation />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/payment-failed" element={<PaymentFailed />} />
 
