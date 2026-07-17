@@ -3,7 +3,7 @@ import React from 'react';
 const RefundAndCancellation = () => {
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">
-      <h1 className="text-3xl font-bold text-emerald-900 mb-6">Refund & Cancellation Policy</h1>
+      <h1 className="text-3xl font-bold text-emerald-900 mb-6">Return & Refund Policy</h1>
       <div className="bg-white p-8 rounded-lg shadow-sm border border-emerald-100 space-y-6">
         <section>
           <p className="text-gray-700 leading-relaxed mb-6">
